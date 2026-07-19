@@ -9,19 +9,19 @@ number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: MOQ
+# area: AREA
+# workgroup: MOQ
 keyword:
  - conditional filtering
- - dynamic filtering 
+ - dynamic filtering
  - ABR
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+#  group: WG
+#  type: Working Group
+#  mail: WG@example.com
+#  arch: https://example.com/WG
+  github: "yuyou/conditional_filtering"
+  latest: "https://yuyou.github.io/conditional_filtering/draft-moq-conditional-filtering.html"
 
 author:
  -
