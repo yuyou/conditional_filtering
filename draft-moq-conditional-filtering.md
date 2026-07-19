@@ -28,10 +28,6 @@ author:
     fullname: Yu You
     organization: Nokia
     email: yu.you@nokia.com
- -
-    fullname: Yu2 You2
-    organization: Nokia
-    email: yu2.you2@nokia.com
 
 normative:
 
