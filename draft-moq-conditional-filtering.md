@@ -19,22 +19,22 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
+title: "Conditional Filtering"
 abbrev: "TODO - Abbreviation"
 category: info
 
-docname: draft-todo-yourname-protocol-latest
+docname: draft-moq-conditional-filtering
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
 consensus: true
 v: 3
 area: AREA
-workgroup: WG Working Group
+workgroup: MOQ
 keyword:
- - next generation
- - unicorn
- - AI-native
+ - conditional filtering
+ - dynamic filtering 
+ - ABR
 venue:
   group: WG
   type: Working Group
@@ -45,9 +45,13 @@ venue:
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    fullname: Yu You
+    organization: Nokia
+    email: yu.you@nokia.com
+ -
+    fullname: Yu2 You2
+    organization: Nokia
+    email: yu2.you2@nokia.com
 
 normative:
 
