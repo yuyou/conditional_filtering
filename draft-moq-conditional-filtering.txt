@@ -2,14 +2,14 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                              19 July 2026
-Expires: 20 January 2027
+MOQ                                                               Y. You
+Internet-Draft                                                   Y. You2
+Intended status: Informational                                     Nokia
+Expires: 20 January 2027                                    19 July 2026
 
 
-                           TODO - Your title
-                  draft-todo-yourname-protocol-latest
+                         Conditional Filtering
+                    draft-moq-conditional-filtering
 
 Abstract
 
@@ -21,8 +21,7 @@ About This Document
 
    The latest revision of this draft can be found at
    https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
-   protocol/.
+   be found at https://datatracker.ietf.org/doc/draft-moq-conditional/.
 
    Discussion of this document takes place on the WG Working Group
    mailing list (mailto:WG@example.com), which is archived at
@@ -70,7 +69,7 @@ Table of Contents
    4.  IANA Considerations
    5.  Normative References
    Acknowledgments
-   Author's Address
+   Authors' Addresses
 
 1.  Introduction
 
@@ -107,8 +106,13 @@ Acknowledgments
 
    TODO acknowledge.
 
-Author's Address
+Authors' Addresses
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   Yu You
+   Nokia
+   Email: yu.you@nokia.com
+
+
+   Yu2 You2
+   Nokia
+   Email: yu2.you2@nokia.com
