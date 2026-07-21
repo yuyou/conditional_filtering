@@ -1,0 +1,83 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-07-21T03:17:34.910366+00:00",
+  "repo": "yuyou/conditional_filtering",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOTdKFkc7zhm-w",
+      "title": "Remove duplicate entry in draft-moq-conditional-filtering",
+      "url": "https://github.com/yuyou/conditional_filtering/pull/1",
+      "state": "MERGED",
+      "author": "yuyou",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Removed duplicate entry for Yu2 You2.",
+      "createdAt": "2026-07-19T11:32:39Z",
+      "updatedAt": "2026-07-19T11:32:59Z",
+      "baseRepository": "yuyou/conditional_filtering",
+      "baseRefName": "main",
+      "baseRefOid": "5358ee09786ee81eebbe972eb3d2482342658df2",
+      "headRepository": "yuyou/conditional_filtering",
+      "headRefName": "yuyou-patch-1",
+      "headRefOid": "76525341b4c8a07e7eceba15a3e8cc63d1b06c9e",
+      "closedAt": "2026-07-19T11:32:59Z",
+      "mergedAt": "2026-07-19T11:32:59Z",
+      "mergedBy": "yuyou",
+      "mergeCommit": {
+        "oid": "7fe8051e9bd441689d2d0b0bb35c4a2525f51de1"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
+}
