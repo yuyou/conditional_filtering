@@ -79,7 +79,8 @@ Table of Contents
    3.  The RANGE_FILTER_CONDITION Parameter
      3.1.  Relationship to Existing SetID
      3.2.  Parameter Definition
-     3.3.  Alternative: Reference-Based Design with
+     3.3.  SETUP Negotiation
+     3.4.  Alternative: Reference-Based Design with
            CONDITIONAL-SET-ASSIGNMENT
    4.  Relay Evaluation and Bandwidth Allocation
      4.1.  General Behavior
@@ -231,7 +232,39 @@ Table of Contents
       first, while higher-priority conditional SetIDs maintain their
       target allocation.
 
-3.3.  Alternative: Reference-Based Design with CONDITIONAL-SET-
+3.3.  SETUP Negotiation
+
+   Per Section 10.3 of [I-D.ietf-moq-transport], the SETUP message
+   allows endpoints to agree on the initial configuration before any
+   other control messages are exchanged.  Extensions that modify control
+   message semantics, such as RANGE_FILTER_CONDITION, MUST be negotiated
+   through Setup Options before use.
+
+   This document defines a new Setup Option, MAX_CONDITIONAL_FILTERS:
+
+   MAX_CONDITIONAL_FILTERS (Type 0x09):  Limits the peer's total number
+      of RANGE_FILTER_CONDITION parameters allowed concurrently for a
+      given subscription or fetch.  The default value is 0, so if not
+      specified, the peer MUST NOT send any RANGE_FILTER_CONDITION
+      parameters.  If this limit is exceeded, an endpoint MUST reject
+      this with REQUEST_ERROR with error code INVALID_FILTER.
+
+   Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an
+   endpoint that sends RANGE_FILTER_CONDITION MUST also ensure that the
+   MAX_FILTER_RANGES Setup Option (Section 10.3.1.6 of
+   [I-D.ietf-moq-transport]) has been negotiated with a non-zero value;
+   otherwise Range Filters themselves would not be permitted and the
+   referenced SetIDs could not be established.
+
+   Endpoints that do not support this extension will not include the
+   MAX_CONDITIONAL_FILTERS Setup Option in their SETUP message.  As
+   required by Section 10.3 of [I-D.ietf-moq-transport], endpoints MUST
+   ignore unknown Setup Options, so a peer that receives
+   MAX_CONDITIONAL_FILTERS from an endpoint that does not support it
+   simply ignores the option and does not send RANGE_FILTER_CONDITION
+   parameters in that session.
+
+3.4.  Alternative: Reference-Based Design with CONDITIONAL-SET-
       ASSIGNMENT
 
    The inline parameter design described in Section 3.2 embeds all
@@ -772,9 +805,12 @@ Table of Contents
 
 10.  IANA Considerations
 
-   This document requests the following registrations: * A new Message
-   Parameter Type for RANGE_FILTER_CONDITION in the "MOQT Message
-   Parameters" registry. * A new Object Property Type for
+   This document requests the following registrations: * A new Setup
+   Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x09) in
+   the "MOQ Setup Options" registry (Section 15.4 of
+   [I-D.ietf-moq-transport]), with Specification Required policy. * A
+   new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
+   Message Parameters" registry. * A new Object Property Type for
    PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties"
    registry.
 
