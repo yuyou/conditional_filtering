@@ -1574,7 +1574,7 @@ RANGE_FILTER_CONDITION (SetID=2):
             <p id="section-5.3-2.1.1">B_total = 7000 kbps: SetID=1 is allocated <code>7000 * 6 / 10 = 4200</code>, which satisfies its 2000 kbps threshold. The remaining budget is 5000 kbps. SetID=2 is then allocated <code>7000 * 4 / 10 = 2800</code>, which satisfies its 2500 kbps threshold. The relay therefore forwards SetID 0, SetID 1, and SetID 2.<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.3-3">Note: The subscriber <span class="bcp14">SHOULD</span> set fractions and thresholds such that, at the expected B_total, each desired layer's threshold is within its allocated fraction. The example above illustrates the mechanics; real deployments <span class="bcp14">SHOULD</span> calibrate threshold and fraction values so the intended set of layers remains active at expected bandwidth levels.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">Note: The subscriber should set fractions and thresholds such that, at the expected B_total, each desired layer's threshold is within its allocated fraction. The example above illustrates the mechanics; real deployments may calibrate threshold and fraction values so the intended set of layers remains active at expected bandwidth levels.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <p id="section-5.3-4">In a typical deployment:<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.3-5.1">
@@ -1823,29 +1823,46 @@ endpoints to agree on the initial configuration before any other control
 messages are exchanged. Extensions that modify control message semantics,
 such as RANGE_FILTER_CONDITION, <span class="bcp14">MUST</span> be negotiated through Setup Options
 before use.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
-<p id="section-7.4-2">This document defines a new Setup Option, MAX_CONDITIONAL_FILTERS:<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">This document defines two new Setup Options: RANGE_FILTER_CONDITION and
+MAX_CONDITIONAL_FILTERS.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-7.4-3">
-          <dt id="section-7.4-3.1">MAX_CONDITIONAL_FILTERS (Type 0x09):</dt>
+          <dt id="section-7.4-3.1">RANGE_FILTER_CONDITION (Type 0x09):</dt>
           <dd style="margin-left: 1.5em" id="section-7.4-3.2">
-            <p id="section-7.4-3.2.1">Limits the peer's total number of RANGE_FILTER_CONDITION parameters allowed
+            <p id="section-7.4-3.2.1">Declares support for the RANGE_FILTER_CONDITION message parameter defined
+in <a href="#parameter-definition" class="auto internal xref">Section 3.2</a>. The value is a variable-length integer
+identifying the version of the conditional filtering algorithm set the
+endpoint is willing to use. The value indicates the highest Algorithm ID
+the endpoint is capable of evaluating. An endpoint that includes this
+option can process RANGE_FILTER_CONDITION parameters for any Algorithm ID
+up to and including the advertised value. If not present, the endpoint does
+not support this extension.<a href="#section-7.4-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.4-3.3">MAX_CONDITIONAL_FILTERS (Type 0x0A):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.4-3.4">
+            <p id="section-7.4-3.4.1">Limits the peer's total number of RANGE_FILTER_CONDITION parameters allowed
 concurrently for a given subscription or fetch. The default value is 0, so
 if not specified, the peer <span class="bcp14">MUST NOT</span> send any RANGE_FILTER_CONDITION
 parameters. If this limit is exceeded, an endpoint <span class="bcp14">MUST</span> reject this with
-REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-7.4-3.2.1" class="pilcrow">¶</a></p>
+REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-7.4-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-7.4-4">Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an endpoint that
+<p id="section-7.4-4">An endpoint that wishes to send RANGE_FILTER_CONDITION parameters <span class="bcp14">MUST</span> verify
+that the peer's SETUP message includes a RANGE_FILTER_CONDITION Setup Option
+with a value greater than or equal to the Algorithm ID it intends to use, and
+a MAX_CONDITIONAL_FILTERS value greater than zero.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
+<p id="section-7.4-5">Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an endpoint that
 sends RANGE_FILTER_CONDITION <span class="bcp14">MUST</span> also ensure that the MAX_FILTER_RANGES Setup
 Option (Section 10.3.1.6 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>) has been negotiated
 with a non-zero value; otherwise Range Filters themselves would not be
-permitted and the referenced SetIDs could not be established.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
-<p id="section-7.4-5">Endpoints that do not support this extension will not include the
-MAX_CONDITIONAL_FILTERS Setup Option in their SETUP message. As required by
+permitted and the referenced SetIDs could not be established.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+<p id="section-7.4-6">Endpoints that do not support this extension will not include the
+RANGE_FILTER_CONDITION Setup Option in their SETUP message. As required by
 Section 10.3 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>, endpoints <span class="bcp14">MUST</span> ignore unknown
-Setup Options, so a peer that receives MAX_CONDITIONAL_FILTERS from an
-endpoint that does not support it simply ignores the option and does not send
-RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+Setup Options, so a peer that receives these options from an endpoint that
+does not recognize them simply ignores them and does not send
+RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1864,7 +1881,8 @@ RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-5" class
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
 <p id="section-9-1">This document requests the following registrations:
-*  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.
+*  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.
+*  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x0A) in the "MOQ Setup Options" registry (Section 15.4 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.
 *  A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT Message Parameters" registry.
 *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties" registry.<a href="#section-9-1" class="pilcrow">¶</a></p>
 </section>
@@ -1903,7 +1921,7 @@ RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-5" class
 <dl class="references">
 <dt id="SSTS">[SSTS]</dt>
       <dd>
-<span class="refTitle">"Sender-Side Track Switching for Media over QUIC Transport"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-transport.md">https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-transport.md</a>&gt;</span>. </dd>
+<span class="refTitle">"Sender-Side Track Switching for Media over QUIC Transport"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/wilaw/moqt-ssts/blob/main/draft-wilaw-moq-moqt-ssts.md">https://github.com/wilaw/moqt-ssts/blob/main/draft-wilaw-moq-moqt-ssts.md</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

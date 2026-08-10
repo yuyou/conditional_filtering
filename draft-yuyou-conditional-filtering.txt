@@ -485,12 +485,11 @@ Table of Contents
       satisfies its 2500 kbps threshold.  The relay therefore forwards
       SetID 0, SetID 1, and SetID 2.
 
-   Note: The subscriber SHOULD set fractions and thresholds such that,
+   Note: The subscriber should set fractions and thresholds such that,
    at the expected B_total, each desired layer's threshold is within its
    allocated fraction.  The example above illustrates the mechanics;
-   real deployments SHOULD calibrate threshold and fraction values so
-   the intended set of layers remains active at expected bandwidth
-   levels.
+   real deployments may calibrate threshold and fraction values so the
+   intended set of layers remains active at expected bandwidth levels.
 
    In a typical deployment:
 
@@ -768,14 +767,31 @@ Table of Contents
    message semantics, such as RANGE_FILTER_CONDITION, MUST be negotiated
    through Setup Options before use.
 
-   This document defines a new Setup Option, MAX_CONDITIONAL_FILTERS:
+   This document defines two new Setup Options: RANGE_FILTER_CONDITION
+   and MAX_CONDITIONAL_FILTERS.
 
-   MAX_CONDITIONAL_FILTERS (Type 0x09):  Limits the peer's total number
+   RANGE_FILTER_CONDITION (Type 0x09):  Declares support for the
+      RANGE_FILTER_CONDITION message parameter defined in Section 3.2.
+      The value is a variable-length integer identifying the version of
+      the conditional filtering algorithm set the endpoint is willing to
+      use.  The value indicates the highest Algorithm ID the endpoint is
+      capable of evaluating.  An endpoint that includes this option can
+      process RANGE_FILTER_CONDITION parameters for any Algorithm ID up
+      to and including the advertised value.  If not present, the
+      endpoint does not support this extension.
+
+   MAX_CONDITIONAL_FILTERS (Type 0x0A):  Limits the peer's total number
       of RANGE_FILTER_CONDITION parameters allowed concurrently for a
       given subscription or fetch.  The default value is 0, so if not
       specified, the peer MUST NOT send any RANGE_FILTER_CONDITION
       parameters.  If this limit is exceeded, an endpoint MUST reject
       this with REQUEST_ERROR with error code INVALID_FILTER.
+
+   An endpoint that wishes to send RANGE_FILTER_CONDITION parameters
+   MUST verify that the peer's SETUP message includes a
+   RANGE_FILTER_CONDITION Setup Option with a value greater than or
+   equal to the Algorithm ID it intends to use, and a
+   MAX_CONDITIONAL_FILTERS value greater than zero.
 
    Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an
    endpoint that sends RANGE_FILTER_CONDITION MUST also ensure that the
@@ -785,12 +801,11 @@ Table of Contents
    referenced SetIDs could not be established.
 
    Endpoints that do not support this extension will not include the
-   MAX_CONDITIONAL_FILTERS Setup Option in their SETUP message.  As
+   RANGE_FILTER_CONDITION Setup Option in their SETUP message.  As
    required by Section 10.3 of [I-D.ietf-moq-transport], endpoints MUST
-   ignore unknown Setup Options, so a peer that receives
-   MAX_CONDITIONAL_FILTERS from an endpoint that does not support it
-   simply ignores the option and does not send RANGE_FILTER_CONDITION
-   parameters in that session.
+   ignore unknown Setup Options, so a peer that receives these options
+   from an endpoint that does not recognize them simply ignores them and
+   does not send RANGE_FILTER_CONDITION parameters in that session.
 
 8.  Security Considerations
 
@@ -806,8 +821,11 @@ Table of Contents
 9.  IANA Considerations
 
    This document requests the following registrations: * A new Setup
-   Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x09) in
-   the "MOQ Setup Options" registry (Section 15.4 of
+   Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the
+   "MOQ Setup Options" registry (Section 15.4 of
+   [I-D.ietf-moq-transport]), with Specification Required policy. * A
+   new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value:
+   0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
    [I-D.ietf-moq-transport]), with Specification Required policy. * A
    new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
    Message Parameters" registry. * A new Object Property Type for
@@ -837,8 +855,8 @@ Table of Contents
 10.2.  Informative References
 
    [SSTS]     "Sender-Side Track Switching for Media over QUIC
-              Transport", n.d., <https://github.com/wilaw/moq-
-              transport/blob/patch-1/draft-ietf-moq-transport.md>.
+              Transport", n.d., <https://github.com/wilaw/moqt-
+              ssts/blob/main/draft-wilaw-moq-moqt-ssts.md>.
 
 Acknowledgments
 
