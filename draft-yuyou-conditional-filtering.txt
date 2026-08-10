@@ -5,11 +5,11 @@
 Media Over QUIC                                                   S. Gül
 Internet-Draft                                                    Y. You
 Intended status: Standards Track                                   Nokia
-Expires: 9 February 2027                                        A. Begen
+Expires: 11 February 2027                                       A. Begen
                                                          Networked Media
                                                                A. Sarker
                                                                    Nokia
-                                                           8 August 2026
+                                                          10 August 2026
 
 
         Conditional Range Filters for Media over QUIC Transport
@@ -56,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 February 2027.
+   This Internet-Draft will expire on 11 February 2027.
 
 Copyright Notice
 
@@ -79,8 +79,7 @@ Table of Contents
    3.  The RANGE_FILTER_CONDITION Parameter
      3.1.  Relationship to Existing SetID
      3.2.  Parameter Definition
-     3.3.  SETUP Negotiation
-     3.4.  Alternative: Reference-Based Design with
+     3.3.  Alternative: Reference-Based Design with
            CONDITIONAL-SET-ASSIGNMENT
    4.  Relay Evaluation and Bandwidth Allocation
      4.1.  General Behavior
@@ -93,21 +92,22 @@ Table of Contents
      5.2.  Step 2: Bind Conditions with RANGE_FILTER_CONDITION
            (Algorithm 0)
      5.3.  Result
-   6.  Handling Filtered Subgroups: Prior Subgroup ID Gap
-   7.  Call flow
-     7.1.  Typical SUBSCRIBE workflow
-     7.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
-     7.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
+   6.  Call flow
+     6.1.  Typical SUBSCRIBE workflow
+     6.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
+     6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
            PUBLISH_OK
-   8.  Design Considerations
-     8.1.  OR-Preserving Admission Versus Set Replacement
-     8.2.  Alternative: Embedding Conditions in Existing Range Filter
+   7.  Design Considerations
+     7.1.  OR-Preserving Admission Versus Set Replacement
+     7.2.  Alternative: Embedding Conditions in Existing Range Filter
            Parameters
-   9.  Security Considerations
-   10. IANA Considerations
-   11. References
-     11.1.  Normative References
-     11.2.  Informative References
+     7.3.  Handling Filtered Subgroups: Prior Subgroup ID Gap
+     7.4.  Extension negotiation
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -232,39 +232,7 @@ Table of Contents
       first, while higher-priority conditional SetIDs maintain their
       target allocation.
 
-3.3.  SETUP Negotiation
-
-   Per Section 10.3 of [I-D.ietf-moq-transport], the SETUP message
-   allows endpoints to agree on the initial configuration before any
-   other control messages are exchanged.  Extensions that modify control
-   message semantics, such as RANGE_FILTER_CONDITION, MUST be negotiated
-   through Setup Options before use.
-
-   This document defines a new Setup Option, MAX_CONDITIONAL_FILTERS:
-
-   MAX_CONDITIONAL_FILTERS (Type 0x09):  Limits the peer's total number
-      of RANGE_FILTER_CONDITION parameters allowed concurrently for a
-      given subscription or fetch.  The default value is 0, so if not
-      specified, the peer MUST NOT send any RANGE_FILTER_CONDITION
-      parameters.  If this limit is exceeded, an endpoint MUST reject
-      this with REQUEST_ERROR with error code INVALID_FILTER.
-
-   Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an
-   endpoint that sends RANGE_FILTER_CONDITION MUST also ensure that the
-   MAX_FILTER_RANGES Setup Option (Section 10.3.1.6 of
-   [I-D.ietf-moq-transport]) has been negotiated with a non-zero value;
-   otherwise Range Filters themselves would not be permitted and the
-   referenced SetIDs could not be established.
-
-   Endpoints that do not support this extension will not include the
-   MAX_CONDITIONAL_FILTERS Setup Option in their SETUP message.  As
-   required by Section 10.3 of [I-D.ietf-moq-transport], endpoints MUST
-   ignore unknown Setup Options, so a peer that receives
-   MAX_CONDITIONAL_FILTERS from an endpoint that does not support it
-   simply ignores the option and does not send RANGE_FILTER_CONDITION
-   parameters in that session.
-
-3.4.  Alternative: Reference-Based Design with CONDITIONAL-SET-
+3.3.  Alternative: Reference-Based Design with CONDITIONAL-SET-
       ASSIGNMENT
 
    The inline parameter design described in Section 3.2 embeds all
@@ -542,26 +510,7 @@ Table of Contents
    round-trip signaling delays while preserving the existing SetID
    combination semantics.
 
-6.  Handling Filtered Subgroups: Prior Subgroup ID Gap
-
-   When a relay dynamically filters out a subgroup due to network
-   conditions, a subscriber receiving the stream might notice a
-   numerical leap in Group IDs or Object IDs.  To explicitly communicate
-   that these missing objects were intentionally skipped by a
-   conditional filter rather than lost to network congestion, we propose
-   a new PRIOR_SUBGROUP_ID_GAP Object Property.
-
-   *  *Prior Subgroup ID Gap (Property Type: 0x3F):* A variable-length
-      integer containing the number of Subgroups prior to the current
-      Subgroup ID (within the current Group) that do not and will never
-      exist because they were conditionally filtered out.
-
-   If a relay drops Subgroup 1 but continues forwarding Subgroup 0 and
-   Subgroup 2, it injects PRIOR_SUBGROUP_ID_GAP = 1 into the first
-   Object of Subgroup 2.  Relays MUST be permitted to modify this
-   specific gap property to support dynamic conditional filtering.
-
-7.  Call flow
+6.  Call flow
 
    The following call flows illustrate three workflows: 1.  A typical
    SUBSCRIBE workflow for conditional range-filter evaluation. 2.  A
@@ -569,7 +518,7 @@ Table of Contents
    and Namespace Prefix Matching. 3.  A publisher-initiated subscription
    workflow where RANGE_FILTER_CONDITION is carried in PUBLISH_OK.
 
-7.1.  Typical SUBSCRIBE workflow
+6.1.  Typical SUBSCRIBE workflow
 
    +------------+                                   +-------+
    | Subscriber |                                   | Relay |
@@ -616,7 +565,7 @@ Table of Contents
       are skipped, uses PRIOR_SUBGROUP_ID_GAP to make intentional
       omissions explicit.
 
-7.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
+6.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
 
    The following call flow illustrates a publisher-initiated
    subscription workflow based on SUBSCRIBE_TRACKS and Namespace Prefix
@@ -663,7 +612,7 @@ Table of Contents
       limit delivered objects, either statically (fixed ranges) or
       dynamically (runtime condition evaluation).
 
-7.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
+6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
       PUBLISH_OK
 
    The following call flow illustrates a publisher-initiated workflow
@@ -710,9 +659,9 @@ Table of Contents
       to that accepted stream and forwards only objects that satisfy the
       resulting active SetID combination.
 
-8.  Design Considerations
+7.  Design Considerations
 
-8.1.  OR-Preserving Admission Versus Set Replacement
+7.1.  OR-Preserving Admission Versus Set Replacement
 
    Two high-level designs are possible for conditional intra-track
    filtering.
@@ -740,7 +689,7 @@ Table of Contents
    prefers that trade-off because it keeps the extension additive and
    avoids redefining core MOQT Range Filter behavior.
 
-8.2.  Alternative: Embedding Conditions in Existing Range Filter
+7.2.  Alternative: Embedding Conditions in Existing Range Filter
       Parameters
 
    An alternative design would embed the conditional evaluation fields
@@ -792,7 +741,58 @@ Table of Contents
    For these reasons, RANGE_FILTER_CONDITION is defined as a standalone
    parameter that references an existing SetID by value.
 
-9.  Security Considerations
+7.3.  Handling Filtered Subgroups: Prior Subgroup ID Gap
+
+   When a relay dynamically filters out a subgroup due to network
+   conditions, a subscriber receiving the stream might notice a
+   numerical leap in Group IDs or Object IDs.  To explicitly communicate
+   that these missing objects were intentionally skipped by a
+   conditional filter rather than lost to network congestion, we propose
+   a new PRIOR_SUBGROUP_ID_GAP Object Property.
+
+   *  *Prior Subgroup ID Gap (Property Type: 0x3F):* A variable-length
+      integer containing the number of Subgroups prior to the current
+      Subgroup ID (within the current Group) that do not and will never
+      exist because they were conditionally filtered out.
+
+   If a relay drops Subgroup 1 but continues forwarding Subgroup 0 and
+   Subgroup 2, it injects PRIOR_SUBGROUP_ID_GAP = 1 into the first
+   Object of Subgroup 2.  Relays MUST be permitted to modify this
+   specific gap property to support dynamic conditional filtering.
+
+7.4.  Extension negotiation
+
+   Per Section 10.3 of [I-D.ietf-moq-transport], the SETUP message
+   allows endpoints to agree on the initial configuration before any
+   other control messages are exchanged.  Extensions that modify control
+   message semantics, such as RANGE_FILTER_CONDITION, MUST be negotiated
+   through Setup Options before use.
+
+   This document defines a new Setup Option, MAX_CONDITIONAL_FILTERS:
+
+   MAX_CONDITIONAL_FILTERS (Type 0x09):  Limits the peer's total number
+      of RANGE_FILTER_CONDITION parameters allowed concurrently for a
+      given subscription or fetch.  The default value is 0, so if not
+      specified, the peer MUST NOT send any RANGE_FILTER_CONDITION
+      parameters.  If this limit is exceeded, an endpoint MUST reject
+      this with REQUEST_ERROR with error code INVALID_FILTER.
+
+   Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an
+   endpoint that sends RANGE_FILTER_CONDITION MUST also ensure that the
+   MAX_FILTER_RANGES Setup Option (Section 10.3.1.6 of
+   [I-D.ietf-moq-transport]) has been negotiated with a non-zero value;
+   otherwise Range Filters themselves would not be permitted and the
+   referenced SetIDs could not be established.
+
+   Endpoints that do not support this extension will not include the
+   MAX_CONDITIONAL_FILTERS Setup Option in their SETUP message.  As
+   required by Section 10.3 of [I-D.ietf-moq-transport], endpoints MUST
+   ignore unknown Setup Options, so a peer that receives
+   MAX_CONDITIONAL_FILTERS from an endpoint that does not support it
+   simply ignores the option and does not send RANGE_FILTER_CONDITION
+   parameters in that session.
+
+8.  Security Considerations
 
    This extension relies on the existing security framework of MOQT.
    Conditional filter evaluation must be computationally lightweight to
@@ -803,7 +803,7 @@ Table of Contents
    conditionally bound SetIDs a subscriber can declare in a single
    session.
 
-10.  IANA Considerations
+9.  IANA Considerations
 
    This document requests the following registrations: * A new Setup
    Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x09) in
@@ -814,9 +814,9 @@ Table of Contents
    PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties"
    registry.
 
-11.  References
+10.  References
 
-11.1.  Normative References
+10.1.  Normative References
 
    [I-D.ietf-moq-transport]
               Nandakumar, S., Vasiliev, V., Swett, I., and A. Frindell,
@@ -834,7 +834,7 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-11.2.  Informative References
+10.2.  Informative References
 
    [SSTS]     "Sender-Side Track Switching for Media over QUIC
               Transport", n.d., <https://github.com/wilaw/moq-
