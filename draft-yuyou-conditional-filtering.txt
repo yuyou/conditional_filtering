@@ -5,11 +5,11 @@
 Media Over QUIC                                                   S. Gül
 Internet-Draft                                                    Y. You
 Intended status: Standards Track                                   Nokia
-Expires: 11 February 2027                                       A. Begen
+Expires: 14 February 2027                                       A. Begen
                                                          Networked Media
                                                                A. Sarker
                                                                    Nokia
-                                                          10 August 2026
+                                                          13 August 2026
 
 
         Conditional Range Filters for Media over QUIC Transport
@@ -56,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 February 2027.
+   This Internet-Draft will expire on 14 February 2027.
 
 Copyright Notice
 
@@ -827,10 +827,8 @@ Table of Contents
    new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value:
    0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
    [I-D.ietf-moq-transport]), with Specification Required policy. * A
-   new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
-   Message Parameters" registry. * A new Object Property Type for
-   PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties"
-   registry.
+   new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested value:
+   0x3F) in the "MOQ Properties" registry.
 
 10.  References
 
