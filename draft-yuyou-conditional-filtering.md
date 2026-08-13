@@ -492,7 +492,6 @@ This extension relies on the existing security framework of MOQT. Conditional fi
 This document requests the following registrations:
 *  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of {{!I-D.ietf-moq-transport}}), with Specification Required policy.
 *  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x0A) in the "MOQ Setup Options" registry (Section 15.4 of {{!I-D.ietf-moq-transport}}), with Specification Required policy.
-*  A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT Message Parameters" registry.
 *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties" registry.
 
 --- back
