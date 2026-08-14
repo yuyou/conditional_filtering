@@ -24,15 +24,15 @@ venue:
   
 author:
   -
-    ins: S. Gül
-    name: Serhan Gül
-    organization: Nokia
-    email: serhan.guel@nokia.com
-  -
     ins: Y. You
     name: Yu You
     organization: Nokia
     email: yu.you@nokia.com
+  -
+    ins: S. Gül
+    name: Serhan Gül
+    organization: Nokia
+    email: serhan.guel@nokia.com
   -
     ins: A. Begen
     name: Ali Cengiz Begen
@@ -859,4 +859,4 @@ conditionally bound SetIDs a subscriber can declare in a single session.
 # Acknowledgments
 {:numbered="false"}
 
-TODO
+IETF moq working group.
