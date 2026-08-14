@@ -12,10 +12,16 @@ workgroup: "Media Over QUIC"
 keyword:
   - media over quic
   - range filter
-  - abr
+  - moq
+  - moqt
 venue:
+  group: "Media Over QUIC"
+  type: "Working Group"
+  mail: "moq@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: yuyou/conditional_filtering
   latest: https://yuyou.github.io/conditional_filtering/
+
 author:
   -
     ins: S. Gül
@@ -113,7 +119,7 @@ Set rank (8 bits):
 : Degradation priority when estimated bandwidth is constrained, expressed as an 8-bit unsigned integer in the range 1-255. The default value is 1. Values of 0 and outside this range MUST result in a REQUEST_ERROR with error code INVALID_FILTER. Lower values indicate higher priority (protected from degradation). When bandwidth is sufficient, all conditional SetIDs remain active. When bandwidth is constrained, lower-priority conditional SetIDs (higher numeric rank) are deactivated first, while higher-priority conditional SetIDs maintain their target allocation.
 
 
-## Alternative: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT {#conditional-set-assignment-design}
+## Alternative 1: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT {#conditional-set-assignment-design}
 
 The inline parameter design described in {{parameter-definition}} embeds all algorithm fields directly in RANGE_FILTER_CONDITION. This produces a self-contained parameter but duplicates the algorithm parameter structure that Sender-Side Track Switching (SSTS) {{SSTS}} defines in its SWITCHING-SET-ASSIGNMENT parameter, which has an identical set of fields (Algorithm ID, Throughput threshold, Set throughput fraction, Activate switching, Set rank).
 
@@ -146,7 +152,61 @@ This design has the following properties:
 
 The trade-off is that the subscriber must include two parameter types — CONDITIONAL-SET-ASSIGNMENT and RANGE_FILTER_CONDITION — rather than one, and the relay must correlate them. This is a minor implementation cost relative to the elimination of duplicated parameter definitions across two specifications.
 
-This document presents both designs. The reference-based design above is RECOMMENDED when SSTS and conditional intra-track filtering are deployed together. The inline design ({{parameter-definition}}) is suitable for deployments that use only intra-track conditional filtering without SSTS.
+## Alternative 2: Self-Contained Design with CONDITIONAL_FILTER_SET {#conditional-filter-set-design}
+
+The reference-based design maps existing SetIDs to dynamic conditions. A second alternative is a self-contained design that introduces a new parameter, CONDITIONAL_FILTER_SET, which explicitly carries a list of alternative filter configurations for a single subscription.
+
+In this design, the relay interprets the provided configurations as mutually exclusive alternatives. The relay monitors the specified metric and autonomously selects and applies exactly one configuration from the set whose condition is satisfied.
+
+### Parameter Definition
+
+The CONDITIONAL_FILTER_SET parameter (Type 0x44) has the following structure:
+
+~~~
+CONDITIONAL_FILTER_SET {
+  Parameter Type (vi64) = 0x44,
+  Set ID (vi64),
+  Switching Metric (vi64),
+  Switching Offset (uint8),
+  Configuration Count (vi64),
+  Configuration (..) ...,
+}
+~~~
+
+The fields are defined as follows:
+- Set ID: Uniquely identifies the conditional filter set within the session scope, allowing it to be updated or removed via REQUEST_UPDATE.
+- Switching Metric: Identifies the relay-observable metric used for selection, such as throughput (kbps), RTT (ms), or ECN marking rate.
+- Switching Offset: Specifies the switching point. A value of 0 indicates an immediate "hard switch". A non-zero value indicates a "soft switch", where the new configuration is applied starting from a future Subgroup ID (Current ID + Offset).
+- Configuration Count: The number of alternative filter configurations included in this set.
+
+Each Configuration entry within the set defines a specific threshold and the filters to apply when active:
+
+~~~
+Configuration {
+  Config ID (vi64),
+  Metric Threshold (vi64),
+  Filter Parameter Count (vi64),
+  Filter Parameters (..) ...,
+}
+~~~
+
+- Config ID: An identifier for the specific configuration within the set.
+- Metric Threshold: The condition value for the selected Switching Metric. For throughput, the relay selects the configuration with the highest threshold that does not exceed the currently observed metric.
+- Filter Parameters: A list of standard MOQT filter parameters (e.g., SUBGROUP_FILTER, OBJECTID_FILTER) to be applied when this configuration is active.
+
+### Logic and Advantages
+
+Unlike the OR-preserving design, this model uses set-replacement logic. If RTT is the metric and three configurations are defined with thresholds of 80ms, 150ms, and 250ms, the relay selects only the one that matches the current RTT range, stripping all other data
+
+## Summary of Design Alternatives
+
+This draft explores three distinct architectural approaches for conditional filtering.
+
+1.  **Inline Design:** Embeds algorithm parameters directly into a new message parameter that activates or deactivates existing Range Filter SetIDs based on real-time metrics.
+2.  **Reference-Based Design:** Reuses the common algorithm structure from SSTS by mapping standard Range Filter SetIDs to shared conditional logic configurations.
+3.  **Self-Contained Design:** Defines an independent parameter carrying an internal list of mutually exclusive filter profiles and their corresponding metric thresholds.
+
+The **Inline Design** is suggested as the option requiring the **least changes** to the current MOQT specification. It functions as a **purely additive** message parameter that references existing `SetID` values already defined in the base protocol, thereby avoiding the need to modify existing parameters or reorganize the structures of other extensions like SSTS.
 
 # Relay Evaluation and Bandwidth Allocation
 
@@ -492,6 +552,7 @@ This extension relies on the existing security framework of MOQT. Conditional fi
 This document requests the following registrations:
 *  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of {{!I-D.ietf-moq-transport}}), with Specification Required policy.
 *  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x0A) in the "MOQ Setup Options" registry (Section 15.4 of {{!I-D.ietf-moq-transport}}), with Specification Required policy.
+*  A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT Message Parameters" registry.
 *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties" registry.
 
 --- back
