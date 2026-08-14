@@ -2,8 +2,8 @@
 
 
 
-Media Over QUIC                                                   S. Gül
-Internet-Draft                                                    Y. You
+Media Over QUIC                                                   Y. You
+Internet-Draft                                                    S. Gül
 Intended status: Standards Track                                   Nokia
 Expires: 15 February 2027                                       A. Begen
                                                          Networked Media
@@ -81,15 +81,12 @@ Table of Contents
 
    1.  Introduction
    2.  Conventions and Definitions
-   3.  The RANGE_FILTER_CONDITION Parameter
+   3.  The inline RANGE_FILTER_CONDITION Parameter
      3.1.  Relationship to Existing SetID
      3.2.  Parameter Definition
-     3.3.  Alternative 1: Reference-Based Design with
-           CONDITIONAL-SET-ASSIGNMENT
-     3.4.  Alternative 2: Self-Contained Design with
-           CONDITIONAL_FILTER_SET
+     3.3.  Alternative 1: Reference Design
+     3.4.  Alternative 2: Self-Contained Design
        3.4.1.  Parameter Definition
-       3.4.2.  Logic and Advantages
      3.5.  Summary of Design Alternatives
    4.  Relay Evaluation and Bandwidth Allocation
      4.1.  General Behavior
@@ -104,10 +101,10 @@ Table of Contents
      5.3.  Result
    6.  Call flow
      6.1.  Typical SUBSCRIBE workflow
-     6.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
-     6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
-           PUBLISH_OK
-   7.  Design Considerations
+     6.2.  Standard Publisher-initiated SUBSCRIBE_TRACKS workflow
+           (V19)
+     6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION
+   7.  Design Rationale
      7.1.  OR-Preserving Admission Versus Set Replacement
      7.2.  Alternative: Embedding Conditions in Existing Range Filter
            Parameters
@@ -155,7 +152,12 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  The RANGE_FILTER_CONDITION Parameter
+3.  The inline RANGE_FILTER_CONDITION Parameter
+
+   The inline design for conditional filtering embeds all necessary
+   algorithm configuration fields directly within a new message
+   parameter, making it a self-contained solution for intra-track
+   adaptation.
 
 3.1.  Relationship to Existing SetID
 
@@ -242,8 +244,7 @@ Table of Contents
       first, while higher-priority conditional SetIDs maintain their
       target allocation.
 
-3.3.  Alternative 1: Reference-Based Design with CONDITIONAL-SET-
-      ASSIGNMENT
+3.3.  Alternative 1: Reference Design
 
    The inline parameter design described in Section 3.2 embeds all
    algorithm fields directly in RANGE_FILTER_CONDITION.  This produces a
@@ -254,8 +255,8 @@ Table of Contents
    Activate switching, Set rank).
 
    A more composable design separates the algorithm configuration from
-   the filter binding.  Under this design, a single common parameter —
-   CONDITIONAL-SET-ASSIGNMENT — carries the algorithm fields and is
+   the filter binding.  Under this design, a single common parameter
+   "CONDITIONAL-SET-ASSIGNMENT" carries the algorithm fields and is
    shared by both intra-track conditional filtering and inter-track SSTS
    switching.  RANGE_FILTER_CONDITION is then reduced to a binding that
    maps a Range Filter SetID to a Conditional set ID:
@@ -304,12 +305,12 @@ Table of Contents
       specification.
 
    The trade-off is that the subscriber must include two parameter types
-   — CONDITIONAL-SET-ASSIGNMENT and RANGE_FILTER_CONDITION — rather than
-   one, and the relay must correlate them.  This is a minor
+   "CONDITIONAL-SET-ASSIGNMENT" and "RANGE_FILTER_CONDITION", rather
+   than one, and the relay must correlate them.  This is a minor
    implementation cost relative to the elimination of duplicated
    parameter definitions across two specifications.
 
-3.4.  Alternative 2: Self-Contained Design with CONDITIONAL_FILTER_SET
+3.4.  Alternative 2: Self-Contained Design
 
    The reference-based design maps existing SetIDs to dynamic
    conditions.  A second alternative is a self-contained design that
@@ -336,16 +337,21 @@ Table of Contents
      Configuration (..) ...,
    }
 
-   The fields are defined as follows: - Set ID: Uniquely identifies the
-   conditional filter set within the session scope, allowing it to be
-   updated or removed via REQUEST_UPDATE. - Switching Metric: Identifies
-   the relay-observable metric used for selection, such as throughput
-   (kbps), RTT (ms), or ECN marking rate. - Switching Offset: Specifies
-   the switching point.  A value of 0 indicates an immediate "hard
-   switch".  A non-zero value indicates a "soft switch", where the new
-   configuration is applied starting from a future Subgroup ID (Current
-   ID + Offset). - Configuration Count: The number of alternative filter
-   configurations included in this set.
+   *  Set ID: Uniquely identifies the conditional filter set within the
+      session scope, allowing it to be updated or removed via
+      REQUEST_UPDATE.
+
+   *  Switching Metric: Identifies the relay-observable metric used for
+      selection, such as throughput (kbps), RTT (ms), or ECN marking
+      rate.
+
+   *  Switching Offset: Specifies the switching point.  A value of 0
+      indicates an immediate "hard switch."  A non-zero value indicates
+      a "soft switch," where the new configuration is applied starting
+      from a future Subgroup ID (Current ID + Offset).
+
+   *  Configuration Count: The number of alternative filter
+      configurations included in this set.
 
    Each Configuration entry within the set defines a specific threshold
    and the filters to apply when active:
@@ -368,8 +374,6 @@ Table of Contents
    *  Filter Parameters: A list of standard MOQT filter parameters
       (e.g., SUBGROUP_FILTER, OBJECTID_FILTER) to be applied when this
       configuration is active.
-
-3.4.2.  Logic and Advantages
 
    Unlike the OR-preserving design, this model uses set-replacement
    logic.  If RTT is the metric and three configurations are defined
@@ -405,10 +409,8 @@ Table of Contents
    Most of the text in this section is adapted from Sender-Side Track
    Switching for Media over QUIC Transport [SSTS], specifically the
    "Bandwidth Allocation Algorithm" material at
-   https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-
-   transport.md#bandwidth-allocation-allocation-algorithm
-   (https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-
-   transport.md#bandwidth-allocation-allocation-algorithm).
+   <https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-
+   tran sport.md#bandwidth-allocation-allocation-algorithm>.
 
 4.1.  General Behavior
 
@@ -606,11 +608,14 @@ Table of Contents
 
 6.  Call flow
 
-   The following call flows illustrate three workflows: 1.  A typical
-   SUBSCRIBE workflow for conditional range-filter evaluation. 2.  A
-   publisher-initiated subscription workflow based on SUBSCRIBE_TRACKS
-   and Namespace Prefix Matching. 3.  A publisher-initiated subscription
-   workflow where RANGE_FILTER_CONDITION is carried in PUBLISH_OK.
+   1.  A typical SUBSCRIBE workflow for conditional range-filter
+       evaluation.
+
+   2.  A publisher-initiated subscription workflow based on
+       SUBSCRIBE_TRACKS and Namespace Prefix Matching.
+
+   3.  A publisher-initiated subscription workflow where
+       RANGE_FILTER_CONDITION is carried in PUBLISH_OK.
 
 6.1.  Typical SUBSCRIBE workflow
 
@@ -659,37 +664,37 @@ Table of Contents
       are skipped, uses PRIOR_SUBGROUP_ID_GAP to make intentional
       omissions explicit.
 
-6.2.  Publisher-initiated SUBSCRIBE_TRACKS workflow
+6.2.  Standard Publisher-initiated SUBSCRIBE_TRACKS workflow (V19)
 
    The following call flow illustrates a publisher-initiated
    subscription workflow based on SUBSCRIBE_TRACKS and Namespace Prefix
    Matching.
 
-+------------+                        +-------+                            +-----------+
-| Subscriber |                        | Relay |                            | Publisher |
-+------------+                        +-------+                            +-----------+
-  |                                      |                                      |
-  | SUBSCRIBE_TRACKS                     |                                      |
-  | (Track Namespace Prefix,             |                                      |
-  |  optional Range/Conditional Filter)  |                                      |
-  |------------------------------------->|                                      |
-  |                                      | Namespace Prefix Matching            |
-  |                                      | against authorized tracks            |
-  |                                      |------------------------------------->|
-  |                                      |<-------------------------------------|
-  |                                      | Matched Track List                   |
-  |                                      |                                      |
-  |                                      | PUBLISH (Track A) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK (or REQUEST_OK)           |                                      |
-  |=====================================>|======================================|
-  |                                      | PUBLISH (Track B) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK (or REQUEST_OK)           |                                      |
-  |=====================================>|======================================|
-  |                                      |                                      |
-  |<==== Objects for accepted tracks, constrained by active filters ==========> |
-  |                                      |                                      |
+  +------------+                +-------+                  +-----------+
+  | Subscriber |                | Relay |                  | Publisher |
+  +------------+                +-------+                  +-----------+
+    |                               |                            |
+    | SUBSCRIBE_TRACKS              |                            |
+    | (Track Namespace Prefix)      |                            |
+    |                               |                            |
+    |------------------------------>|                            |
+    |                               | Namespace Prefix Matching  |
+    |                               | against authorized tracks  |
+    |                               |--------------------------->|
+    |                               |<---------------------------|
+    |                               | Matched Track List         |
+    |                               |                            |
+    |                               | PUBLISH (Track A)          |
+    |<==============================|============================|
+    | PUBLISH_OK (or REQUEST_OK)    |                            |
+    |==============================>|============================|
+    |                               | PUBLISH (Track B)          |
+    |<==============================|============================|
+    | PUBLISH_OK (or REQUEST_OK)    |                            |
+    |==============================>|============================|
+    |                               |                            |
+    |<==== Objects (Filtered) ======|============================|
+    |    (with PRIOR_GAP prop)      |                            |
 
    *  *Discovery and matching*: The subscriber requests a Track
       Namespace Prefix on a bidirectional stream using SUBSCRIBE_TRACKS.
@@ -706,41 +711,42 @@ Table of Contents
       limit delivered objects, either statically (fixed ranges) or
       dynamically (runtime condition evaluation).
 
-6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION in
-      PUBLISH_OK
+6.3.  Publisher-initiated workflow with RANGE_FILTER_CONDITION
 
    The following call flow illustrates a publisher-initiated workflow
    where the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.
 
-+------------+                        +-------+                            +-----------+
-| Subscriber |                        | Relay |                            | Publisher |
-+------------+                        +-------+                            +-----------+
-  |                                      |                                      |
-  | SUBSCRIBE_TRACKS                     |                                      |
-  | (Track Namespace Prefix)             |                                      |
-  |------------------------------------->|                                      |
-  |                                      | Namespace Prefix Matching            |
-  |                                      | against authorized tracks            |
-  |                                      |------------------------------------->|
-  |                                      |<-------------------------------------|
-  |                                      | Matched Track List                   |
-  |                                      |                                      |
-  |                                      | PUBLISH (Track A) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK + RANGE_FILTER_CONDITION  |                                      |
-  |=====================================>|======================================|
-  |                                      | Apply returned conditions            |
-  |                                      | before forwarding objects            |
-  |<==== Objects for Track A constrained by returned condition ================>|
-  |                                      |                                      |
-  |                                      | PUBLISH (Track B) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK + RANGE_FILTER_CONDITION  |                                      |
-  |=====================================>|======================================|
-  |                                      | Apply returned conditions            |
-  |                                      | before forwarding objects            |
-  |<==== Objects for Track B constrained by returned condition ================>|
-  |                                      |                                      |
+  +------------+                +-------+                  +-----------+
+  | Subscriber |                | Relay |                  | Publisher |
+  +------------+                +-------+                  +-----------+
+    |                               |                            |
+    | SUBSCRIBE_TRACKS              |                            |
+    | (Track Namespace Prefix)      |                            |
+    |------------------------------>|                            |
+    |                               | Namespace Prefix Matching  |
+    |                               | against authorized tracks  |
+    |                               |--------------------------->|
+    |                               |<---------------------------|
+    |                               | Matched Track List         |
+    |                               |                            |
+    |                               | PUBLISH (Track A)          |
+    |<==============================|============================|
+    | PUBLISH_OK                    |                            |
+    |   + RANGE_FILTER_CONDITION    |                            |
+    |==============================>|============================|
+    |                               | Apply returned conditions  |
+    |                               | before forwarding objects  |
+    |<==== Objects (filtered) ==================================>|
+    |                               |                            |
+    |                               | PUBLISH (Track B)          |
+    |<==============================|============================|
+    | PUBLISH_OK                    |                            |
+    |   + RANGE_FILTER_CONDITION    |                            |
+    |==============================>|============================|
+    |                               | Apply returned conditions  |
+    |                               | before forwarding objects  |
+    |<==== Objects (filtered) ==================================>|
+    |                               |                            |
 
    *  *No filter parameters in SUBSCRIBE_TRACKS*: The subscriber
       requests only a Track Namespace Prefix.
@@ -753,7 +759,7 @@ Table of Contents
       to that accepted stream and forwards only objects that satisfy the
       resulting active SetID combination.
 
-7.  Design Considerations
+7.  Design Rationale
 
 7.1.  OR-Preserving Admission Versus Set Replacement
 
@@ -862,6 +868,13 @@ Table of Contents
    message semantics, such as RANGE_FILTER_CONDITION, MUST be negotiated
    through Setup Options before use.
 
+   The Setup Options defined in this section are intended for the inline
+   design of this extension.  Alternative designs, such as the
+   reference-based design (Section 3.3) or the self-contained design
+   (Section 3.4), may instead rely on Setup Options defined in the
+   Sender-Side Track Switching (SSTS) extension [SSTS] or require
+   different identifiers for their respective parameters.
+
    This document defines two new Setup Options: RANGE_FILTER_CONDITION
    and MAX_CONDITIONAL_FILTERS.
 
@@ -915,17 +928,19 @@ Table of Contents
 
 9.  IANA Considerations
 
-   This document requests the following registrations: * A new Setup
-   Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the
-   "MOQ Setup Options" registry (Section 15.4 of
-   [I-D.ietf-moq-transport]), with Specification Required policy. * A
-   new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value:
-   0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
-   [I-D.ietf-moq-transport]), with Specification Required policy. * A
-   new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
-   Message Parameters" registry. * A new Object Property Type for
-   PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties"
-   registry.
+   *  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested
+      value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of
+      [I-D.ietf-moq-transport]), with Specification Required policy.
+
+   *  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested
+      value: 0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
+      [I-D.ietf-moq-transport]), with Specification Required policy.
+
+   *  A new Message Parameter Type for RANGE_FILTER_CONDITION in the
+      "MOQT Message Parameters" registry.
+
+   *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested
+      value: 0x3F) in the "MOQ Properties" registry.
 
 10.  References
 
@@ -955,18 +970,18 @@ Table of Contents
 
 Acknowledgments
 
-   TODO
+   IETF moq working group.
 
 Authors' Addresses
-
-   Serhan Gül
-   Nokia
-   Email: serhan.guel@nokia.com
-
 
    Yu You
    Nokia
    Email: yu.you@nokia.com
+
+
+   Serhan Gül
+   Nokia
+   Email: serhan.guel@nokia.com
 
 
    Ali Cengiz Begen
