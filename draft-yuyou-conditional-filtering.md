@@ -96,7 +96,7 @@ adaptation without requiring further signaling from the subscriber.
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
-# The inöine RANGE_FILTER_CONDITION Parameter
+# The inline RANGE_FILTER_CONDITION Parameter
 
 The inline design for conditional filtering embeds all necessary 
 algorithm configuration fields directly within a new message parameter,
