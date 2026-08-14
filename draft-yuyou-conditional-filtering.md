@@ -21,7 +21,6 @@ venue:
   arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: yuyou/conditional_filtering
   latest: https://yuyou.github.io/conditional_filtering/
-  
 author:
   -
     ins: Y. You
@@ -98,7 +97,7 @@ adaptation without requiring further signaling from the subscriber.
 
 # The inline RANGE_FILTER_CONDITION Parameter
 
-The inline design for conditional filtering embeds all necessary 
+The inline design for conditional filtering embeds all necessary
 algorithm configuration fields directly within a new message parameter,
 making it a self-contained solution for intra-track adaptation.
 
@@ -201,8 +200,8 @@ fields (Algorithm ID, Throughput threshold, Set throughput fraction,
 Activate switching, Set rank).
 
 A more composable design separates the algorithm configuration from the
-filter binding. Under this design, a single common parameter —
-CONDITIONAL-SET-ASSIGNMENT — carries the algorithm fields and is
+filter binding. Under this design, a single common parameter
+"CONDITIONAL-SET-ASSIGNMENT" carries the algorithm fields and is
 shared by both intra-track conditional filtering and inter-track SSTS
 switching. RANGE_FILTER_CONDITION is then reduced to a binding that maps
 a Range Filter SetID to a Conditional set ID:
@@ -249,7 +248,7 @@ This design has the following properties:
   specification.
 
 The trade-off is that the subscriber must include two parameter types
-— CONDITIONAL-SET-ASSIGNMENT and RANGE_FILTER_CONDITION — rather
+"CONDITIONAL-SET-ASSIGNMENT" and "RANGE_FILTER_CONDITION", rather
 than one, and the relay must correlate them. This is a minor
 implementation cost relative to the elimination of duplicated parameter
 definitions across two specifications.
@@ -581,37 +580,37 @@ semantics.
   skipped, uses PRIOR_SUBGROUP_ID_GAP to make intentional omissions
   explicit.
 
-## Publisher-initiated SUBSCRIBE_TRACKS workflow
+## Standard Publisher-initiated SUBSCRIBE_TRACKS workflow (V19)
 
 The following call flow illustrates a publisher-initiated subscription
 workflow based on SUBSCRIBE_TRACKS and Namespace Prefix Matching.
 
 ~~~
-+------------+                        +-------+                            +-----------+
-| Subscriber |                        | Relay |                            | Publisher |
-+------------+                        +-------+                            +-----------+
-  |                                      |                                      |
-  | SUBSCRIBE_TRACKS                     |                                      |
-  | (Track Namespace Prefix,             |                                      |
-  |  optional Range/Conditional Filter)  |                                      |
-  |------------------------------------->|                                      |
-  |                                      | Namespace Prefix Matching            |
-  |                                      | against authorized tracks            |
-  |                                      |------------------------------------->|
-  |                                      |<-------------------------------------|
-  |                                      | Matched Track List                   |
-  |                                      |                                      |
-  |                                      | PUBLISH (Track A) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK (or REQUEST_OK)           |                                      |
-  |=====================================>|======================================|
-  |                                      | PUBLISH (Track B) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK (or REQUEST_OK)           |                                      |
-  |=====================================>|======================================|
-  |                                      |                                      |
-  |<==== Objects for accepted tracks, constrained by active filters ==========> |
-  |                                      |                                      |
++------------+                +-------+                  +-----------+
+| Subscriber |                | Relay |                  | Publisher |
++------------+                +-------+                  +-----------+
+  |                               |                            |
+  | SUBSCRIBE_TRACKS              |                            |
+  | (Track Namespace Prefix)      |                            |
+  |                               |                            |
+  |------------------------------>|                            |
+  |                               | Namespace Prefix Matching  |
+  |                               | against authorized tracks  |
+  |                               |--------------------------->|
+  |                               |<---------------------------|
+  |                               | Matched Track List         |
+  |                               |                            |
+  |                               | PUBLISH (Track A)          |
+  |<==============================|============================|
+  | PUBLISH_OK (or REQUEST_OK)    |                            |
+  |==============================>|============================|
+  |                               | PUBLISH (Track B)          |
+  |<==============================|============================|
+  | PUBLISH_OK (or REQUEST_OK)    |                            |
+  |==============================>|============================|
+  |                               |                            |
+  |<==== Objects (Filtered) ======|============================|
+  |    (with PRIOR_GAP prop)      |                            |
 ~~~
 * **Discovery and matching**: The subscriber requests a Track Namespace
   Prefix on a bidirectional stream using SUBSCRIBE_TRACKS. The relay or
@@ -628,41 +627,43 @@ workflow based on SUBSCRIBE_TRACKS and Namespace Prefix Matching.
   delivered objects, either statically (fixed ranges) or dynamically
   (runtime condition evaluation).
 
-## Publisher-initiated workflow with RANGE_FILTER_CONDITION in PUBLISH_OK
+## Publisher-initiated workflow with RANGE_FILTER_CONDITION
 
 The following call flow illustrates a publisher-initiated workflow where
 the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.
 
 ~~~
-+------------+                        +-------+                            +-----------+
-| Subscriber |                        | Relay |                            | Publisher |
-+------------+                        +-------+                            +-----------+
-  |                                      |                                      |
-  | SUBSCRIBE_TRACKS                     |                                      |
-  | (Track Namespace Prefix)             |                                      |
-  |------------------------------------->|                                      |
-  |                                      | Namespace Prefix Matching            |
-  |                                      | against authorized tracks            |
-  |                                      |------------------------------------->|
-  |                                      |<-------------------------------------|
-  |                                      | Matched Track List                   |
-  |                                      |                                      |
-  |                                      | PUBLISH (Track A) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK + RANGE_FILTER_CONDITION  |                                      |
-  |=====================================>|======================================|
-  |                                      | Apply returned conditions            |
-  |                                      | before forwarding objects            |
-  |<==== Objects for Track A constrained by returned condition ================>|
-  |                                      |                                      |
-  |                                      | PUBLISH (Track B) on new stream      |
-  |<=====================================|======================================|
-  | PUBLISH_OK + RANGE_FILTER_CONDITION  |                                      |
-  |=====================================>|======================================|
-  |                                      | Apply returned conditions            |
-  |                                      | before forwarding objects            |
-  |<==== Objects for Track B constrained by returned condition ================>|
-  |                                      |                                      |
++------------+                +-------+                  +-----------+
+| Subscriber |                | Relay |                  | Publisher |
++------------+                +-------+                  +-----------+
+  |                               |                            |
+  | SUBSCRIBE_TRACKS              |                            |
+  | (Track Namespace Prefix)      |                            |
+  |------------------------------>|                            |
+  |                               | Namespace Prefix Matching  |
+  |                               | against authorized tracks  |
+  |                               |--------------------------->|
+  |                               |<---------------------------|
+  |                               | Matched Track List         |
+  |                               |                            |
+  |                               | PUBLISH (Track A)          |
+  |<==============================|============================|
+  | PUBLISH_OK                    |                            |
+  |   + RANGE_FILTER_CONDITION    |                            |
+  |==============================>|============================|
+  |                               | Apply returned conditions  |
+  |                               | before forwarding objects  |
+  |<==== Objects (filtered) ==================================>|
+  |                               |                            |
+  |                               | PUBLISH (Track B)          |
+  |<==============================|============================|
+  | PUBLISH_OK                    |                            |
+  |   + RANGE_FILTER_CONDITION    |                            |
+  |==============================>|============================|
+  |                               | Apply returned conditions  |
+  |                               | before forwarding objects  |
+  |<==== Objects (filtered) ==================================>|
+  |                               |                            |
 ~~~
 * **No filter parameters in SUBSCRIBE_TRACKS**: The subscriber requests
   only a Track Namespace Prefix.
