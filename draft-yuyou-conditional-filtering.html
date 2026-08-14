@@ -15,7 +15,8 @@
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="range filter" name="keyword">
-<meta content="abr" name="keyword">
+<meta content="moq" name="keyword">
+<meta content="moqt" name="keyword">
 <meta content="draft-yuyou-conditional-filtering-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.0
@@ -1050,7 +1051,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Gül, et al.</td>
-<td class="center">Expires 14 February 2027</td>
+<td class="center">Expires 15 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1064,12 @@ svg {
 <dd class="internet-draft">draft-yuyou-conditional-filtering-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-13" class="published">13 August 2026</time>
+<time datetime="2026-08-14" class="published">14 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-15">15 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1103,8 +1104,13 @@ svg {
 <p id="section-note.1-2">
         The latest revision of this draft can be found at <span><a href="https://yuyou.github.io/conditional_filtering/">https://yuyou.github.io/conditional_filtering/</a></span>.
         Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-yuyou-conditional-filtering/">https://datatracker.ietf.org/doc/draft-yuyou-conditional-filtering/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
-<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
-        <span><a href="https://github.com/yuyou/conditional_filtering">https://github.com/yuyou/conditional_filtering</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Media Over QUIC Working Group mailing list (<span><a href="mailto:moq@ietf.org">mailto:moq@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/moq/">https://mailarchive.ietf.org/arch/browse/moq/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/moq/">https://www.ietf.org/mailman/listinfo/moq/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/yuyou/conditional_filtering">https://github.com/yuyou/conditional_filtering</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1125,7 +1131,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1170,7 +1176,21 @@ svg {
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-parameter-definition" class="internal xref">Parameter Definition</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-alternative-reference-based" class="internal xref">Alternative: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT</a></p>
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-alternative-1-reference-bas" class="internal xref">Alternative 1: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-alternative-2-self-containe" class="internal xref">Alternative 2: Self-Contained Design with CONDITIONAL_FILTER_SET</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-parameter-definition-2" class="internal xref">Parameter Definition</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.2">
+                    <p id="section-toc.1-1.3.2.4.2.2.1"><a href="#section-3.4.2" class="auto internal xref">3.4.2</a>.  <a href="#name-logic-and-advantages" class="internal xref">Logic and Advantages</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-summary-of-design-alternati" class="internal xref">Summary of Design Alternatives</a></p>
 </li>
             </ul>
 </li>
@@ -1360,8 +1380,8 @@ RANGE_FILTER_CONDITION {
 </div>
 <div id="conditional-set-assignment-design">
 <section id="section-3.3">
-        <h3 id="name-alternative-reference-based">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-alternative-reference-based" class="section-name selfRef">Alternative: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT</a>
+        <h3 id="name-alternative-1-reference-bas">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-alternative-1-reference-bas" class="section-name selfRef">Alternative 1: Reference-Based Design with CONDITIONAL-SET-ASSIGNMENT</a>
         </h3>
 <p id="section-3.3-1">The inline parameter design described in <a href="#parameter-definition" class="auto internal xref">Section 3.2</a> embeds all algorithm fields directly in RANGE_FILTER_CONDITION. This produces a self-contained parameter but duplicates the algorithm parameter structure that Sender-Side Track Switching (SSTS) <span>[<a href="#SSTS" class="cite xref">SSTS</a>]</span> defines in its SWITCHING-SET-ASSIGNMENT parameter, which has an identical set of fields (Algorithm ID, Throughput threshold, Set throughput fraction, Activate switching, Set rank).<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">A more composable design separates the algorithm configuration from the filter binding. Under this design, a single common parameter — CONDITIONAL-SET-ASSIGNMENT — carries the algorithm fields and is shared by both intra-track conditional filtering and inter-track SSTS switching. RANGE_FILTER_CONDITION is then reduced to a binding that maps a Range Filter SetID to a Conditional set ID:<a href="#section-3.3-2" class="pilcrow">¶</a></p>
@@ -1399,7 +1419,90 @@ RANGE_FILTER_CONDITION {
 </li>
         </ul>
 <p id="section-3.3-7">The trade-off is that the subscriber must include two parameter types — CONDITIONAL-SET-ASSIGNMENT and RANGE_FILTER_CONDITION — rather than one, and the relay must correlate them. This is a minor implementation cost relative to the elimination of duplicated parameter definitions across two specifications.<a href="#section-3.3-7" class="pilcrow">¶</a></p>
-<p id="section-3.3-8">This document presents both designs. The reference-based design above is <span class="bcp14">RECOMMENDED</span> when SSTS and conditional intra-track filtering are deployed together. The inline design (<a href="#parameter-definition" class="auto internal xref">Section 3.2</a>) is suitable for deployments that use only intra-track conditional filtering without SSTS.<a href="#section-3.3-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conditional-filter-set-design">
+<section id="section-3.4">
+        <h3 id="name-alternative-2-self-containe">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-alternative-2-self-containe" class="section-name selfRef">Alternative 2: Self-Contained Design with CONDITIONAL_FILTER_SET</a>
+        </h3>
+<p id="section-3.4-1">The reference-based design maps existing SetIDs to dynamic conditions. A second alternative is a self-contained design that introduces a new parameter, CONDITIONAL_FILTER_SET, which explicitly carries a list of alternative filter configurations for a single subscription.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">In this design, the relay interprets the provided configurations as mutually exclusive alternatives. The relay monitors the specified metric and autonomously selects and applies exactly one configuration from the set whose condition is satisfied.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<div id="parameter-definition-1">
+<section id="section-3.4.1">
+          <h4 id="name-parameter-definition-2">
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-parameter-definition-2" class="section-name selfRef">Parameter Definition</a>
+          </h4>
+<p id="section-3.4.1-1">The CONDITIONAL_FILTER_SET parameter (Type 0x44) has the following structure:<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.4.1-2">
+<pre>
+CONDITIONAL_FILTER_SET {
+  Parameter Type (vi64) = 0x44,
+  Set ID (vi64),
+  Switching Metric (vi64),
+  Switching Offset (uint8),
+  Configuration Count (vi64),
+  Configuration (..) ...,
+}
+</pre><a href="#section-3.4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.4.1-3">The fields are defined as follows:
+- Set ID: Uniquely identifies the conditional filter set within the session scope, allowing it to be updated or removed via REQUEST_UPDATE.
+- Switching Metric: Identifies the relay-observable metric used for selection, such as throughput (kbps), RTT (ms), or ECN marking rate.
+- Switching Offset: Specifies the switching point. A value of 0 indicates an immediate "hard switch". A non-zero value indicates a "soft switch", where the new configuration is applied starting from a future Subgroup ID (Current ID + Offset).
+- Configuration Count: The number of alternative filter configurations included in this set.<a href="#section-3.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-4">Each Configuration entry within the set defines a specific threshold and the filters to apply when active:<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.4.1-5">
+<pre>
+Configuration {
+  Config ID (vi64),
+  Metric Threshold (vi64),
+  Filter Parameter Count (vi64),
+  Filter Parameters (..) ...,
+}
+</pre><a href="#section-3.4.1-5" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.4.1-6.1">
+              <p id="section-3.4.1-6.1.1">Config ID: An identifier for the specific configuration within the set.<a href="#section-3.4.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-6.2">
+              <p id="section-3.4.1-6.2.1">Metric Threshold: The condition value for the selected Switching Metric. For throughput, the relay selects the configuration with the highest threshold that does not exceed the currently observed metric.<a href="#section-3.4.1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-6.3">
+              <p id="section-3.4.1-6.3.1">Filter Parameters: A list of standard MOQT filter parameters (e.g., SUBGROUP_FILTER, OBJECTID_FILTER) to be applied when this configuration is active.<a href="#section-3.4.1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="logic-and-advantages">
+<section id="section-3.4.2">
+          <h4 id="name-logic-and-advantages">
+<a href="#section-3.4.2" class="section-number selfRef">3.4.2. </a><a href="#name-logic-and-advantages" class="section-name selfRef">Logic and Advantages</a>
+          </h4>
+<p id="section-3.4.2-1">Unlike the OR-preserving design, this model uses set-replacement logic. If RTT is the metric and three configurations are defined with thresholds of 80ms, 150ms, and 250ms, the relay selects only the one that matches the current RTT range, stripping all other data<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="summary-of-design-alternatives">
+<section id="section-3.5">
+        <h3 id="name-summary-of-design-alternati">
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-summary-of-design-alternati" class="section-name selfRef">Summary of Design Alternatives</a>
+        </h3>
+<p id="section-3.5-1">This draft explores three distinct architectural approaches for conditional filtering.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.5-2">
+<li id="section-3.5-2.1">
+            <p id="section-3.5-2.1.1"><strong>Inline Design:</strong> Embeds algorithm parameters directly into a new message parameter that activates or deactivates existing Range Filter SetIDs based on real-time metrics.<a href="#section-3.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.5-2.2">
+            <p id="section-3.5-2.2.1"><strong>Reference-Based Design:</strong> Reuses the common algorithm structure from SSTS by mapping standard Range Filter SetIDs to shared conditional logic configurations.<a href="#section-3.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.5-2.3">
+            <p id="section-3.5-2.3.1"><strong>Self-Contained Design:</strong> Defines an independent parameter carrying an internal list of mutually exclusive filter profiles and their corresponding metric thresholds.<a href="#section-3.5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-3.5-3">The <strong>Inline Design</strong> is suggested as the option requiring the <strong>least changes</strong> to the current MOQT specification. It functions as a <strong>purely additive</strong> message parameter that references existing <code>SetID</code> values already defined in the base protocol, thereby avoiding the need to modify existing parameters or reorganize the structures of other extensions like SSTS.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1883,6 +1986,7 @@ RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-6" class
 <p id="section-9-1">This document requests the following registrations:
 *  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value: 0x09) in the "MOQ Setup Options" registry (Section 15.4 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.
 *  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value: 0x0A) in the "MOQ Setup Options" registry (Section 15.4 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.
+*  A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT Message Parameters" registry.
 *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested value: 0x3F) in the "MOQ Properties" registry.<a href="#section-9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
