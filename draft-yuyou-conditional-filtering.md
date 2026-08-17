@@ -95,7 +95,7 @@ adaptation without requiring further signaling from the subscriber.
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
-# The inline RANGE_FILTER_CONDITION Parameter
+# The Inline RANGE_FILTER_CONDITION Parameter
 
 The inline design for conditional filtering embeds all necessary
 algorithm configuration fields directly within a new message parameter,
@@ -535,9 +535,9 @@ semantics.
 ## Typical SUBSCRIBE workflow
 
 ~~~
-+------------+                                   +-------+
-| Subscriber |                                   | Relay |
-+------------+                                   +-------+
++------------+                               +-------+
+| Subscriber |                               | Relay |
++------------+                               +-------+
   |                                              |
   |    SUBSCRIBE (Standard Range Filters,        |
   |               RANGE_FILTER_CONDITIONs)       |
@@ -689,7 +689,7 @@ That model can be convenient for layered examples, but it changes the
 base MOQT meaning of SetID because SetIDs no longer behave as
 OR-combined filter groups once conditional logic is enabled.
 
-This document instead uses an OR-preserving admission design. Under this
+The inline design instead uses an OR-preserving admission design. Under this
 model, conditional logic determines only whether a SetID participates in
 the existing OR expression at a given switching point. The AND semantics
 within a SetID and the OR semantics across SetIDs remain unchanged. This
@@ -860,4 +860,4 @@ conditionally bound SetIDs a subscriber can declare in a single session.
 # Acknowledgments
 {:numbered="false"}
 
-IETF moq working group.
+IETF MOQ Working Group.
