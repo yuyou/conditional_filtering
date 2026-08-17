@@ -5,11 +5,11 @@
 Media Over QUIC                                                   Y. You
 Internet-Draft                                                    S. Gül
 Intended status: Standards Track                                   Nokia
-Expires: 15 February 2027                                       A. Begen
+Expires: 18 February 2027                                       A. Begen
                                                          Networked Media
                                                                A. Sarker
                                                                    Nokia
-                                                          14 August 2026
+                                                          17 August 2026
 
 
         Conditional Range Filters for Media over QUIC Transport
@@ -61,7 +61,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 February 2027.
+   This Internet-Draft will expire on 18 February 2027.
 
 Copyright Notice
 
@@ -81,7 +81,7 @@ Table of Contents
 
    1.  Introduction
    2.  Conventions and Definitions
-   3.  The inline RANGE_FILTER_CONDITION Parameter
+   3.  The Inline RANGE_FILTER_CONDITION Parameter
      3.1.  Relationship to Existing SetID
      3.2.  Parameter Definition
      3.3.  Alternative 1: Reference Design
@@ -152,7 +152,7 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  The inline RANGE_FILTER_CONDITION Parameter
+3.  The Inline RANGE_FILTER_CONDITION Parameter
 
    The inline design for conditional filtering embeds all necessary
    algorithm configuration fields directly within a new message
@@ -619,9 +619,9 @@ Table of Contents
 
 6.1.  Typical SUBSCRIBE workflow
 
-   +------------+                                   +-------+
-   | Subscriber |                                   | Relay |
-   +------------+                                   +-------+
+   +------------+                               +-------+
+   | Subscriber |                               | Relay |
+   +------------+                               +-------+
      |                                              |
      |    SUBSCRIBE (Standard Range Filters,        |
      |               RANGE_FILTER_CONDITIONs)       |
@@ -773,8 +773,8 @@ Table of Contents
    behave as OR-combined filter groups once conditional logic is
    enabled.
 
-   This document instead uses an OR-preserving admission design.  Under
-   this model, conditional logic determines only whether a SetID
+   The inline design instead uses an OR-preserving admission design.
+   Under this model, conditional logic determines only whether a SetID
    participates in the existing OR expression at a given switching
    point.  The AND semantics within a SetID and the OR semantics across
    SetIDs remain unchanged.  This preserves compatibility with existing
@@ -970,7 +970,7 @@ Table of Contents
 
 Acknowledgments
 
-   IETF moq working group.
+   IETF MOQ Working Group.
 
 Authors' Addresses
 

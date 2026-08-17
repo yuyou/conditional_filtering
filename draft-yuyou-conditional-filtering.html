@@ -1060,7 +1060,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">You, et al.</td>
-<td class="center">Expires 15 February 2027</td>
+<td class="center">Expires 18 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1073,12 +1073,12 @@ svg {
 <dd class="internet-draft">draft-yuyou-conditional-filtering-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-14" class="published">14 August 2026</time>
+<time datetime="2026-08-17" class="published">17 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-15">15 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-18">18 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1149,7 +1149,7 @@ explicit subscriber update signaling.<a href="#section-abstract-1" class="pilcro
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 15 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 18 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1185,7 +1185,7 @@ explicit subscriber update signaling.<a href="#section-abstract-1" class="pilcro
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-inline-range_filter_con" class="internal xref">The inline RANGE_FILTER_CONDITION Parameter</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-inline-range_filter_con" class="internal xref">The Inline RANGE_FILTER_CONDITION Parameter</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
                 <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-relationship-to-existing-se" class="internal xref">Relationship to Existing SetID</a></p>
@@ -1344,7 +1344,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <div id="the-inline-rangefiltercondition-parameter">
 <section id="section-3">
       <h2 id="name-the-inline-range_filter_con">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-inline-range_filter_con" class="section-name selfRef">The inline RANGE_FILTER_CONDITION Parameter</a>
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-inline-range_filter_con" class="section-name selfRef">The Inline RANGE_FILTER_CONDITION Parameter</a>
       </h2>
 <p id="section-3-1">The inline design for conditional filtering embeds all necessary
 algorithm configuration fields directly within a new message parameter,
@@ -1942,9 +1942,9 @@ RANGE_FILTER_CONDITION is carried in PUBLISH_OK.<a href="#section-6-1.3.1" class
         </h3>
 <div class="alignLeft art-text artwork" id="section-6.1-1">
 <pre>
-+------------+                                   +-------+
-| Subscriber |                                   | Relay |
-+------------+                                   +-------+
++------------+                               +-------+
+| Subscriber |                               | Relay |
++------------+                               +-------+
   |                                              |
   |    SUBSCRIBE (Standard Range Filters,        |
   |               RANGE_FILTER_CONDITIONs)       |
@@ -2132,7 +2132,7 @@ mutually exclusive alternatives and selects exactly one active SetID.
 That model can be convenient for layered examples, but it changes the
 base MOQT meaning of SetID because SetIDs no longer behave as
 OR-combined filter groups once conditional logic is enabled.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">This document instead uses an OR-preserving admission design. Under this
+<p id="section-7.1-3">The inline design instead uses an OR-preserving admission design. Under this
 model, conditional logic determines only whether a SetID participates in
 the existing OR expression at a given switching point. The AND semantics
 within a SetID and the OR semantics across SetIDs remain unchanged. This
@@ -2375,7 +2375,7 @@ value: 0x3F) in the "MOQ Properties" registry.<a href="#section-9-1.4.1" class="
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">IETF moq working group.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">IETF MOQ Working Group.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
