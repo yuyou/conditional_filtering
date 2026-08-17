@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Conditional Range Filters for Media over QUIC Transport</title>
+<meta content="Yu You" name="author">
+<meta content="Serhan Gül" name="author">
+<meta content="Ali Cengiz Begen" name="author">
+<meta content="ANM Zaheduzzaman Sarker" name="author">
+<meta content="
+       In Media over QUIC Transport (MOQT), subscribers can use Range Filters
+to select specific subgroups, objects, or priorities within a subscribed
+track. However, these subscription filters are static once established
+and can only be modified through explicit subscriber control signaling.
+This document proposes an extension to the Range Filter design that
+binds conditional evaluation logic directly to specific Range Filter
+sets. By introducing dynamic conditions to Range Filter configurations,
+a relay can autonomously adapt the intra-track forwarding behavior based
+on real-time network conditions, avoiding the round-trip delay of
+explicit subscriber update signaling. 
+    " name="description">
+<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="media over quic" name="keyword">
+<meta content="range filter" name="keyword">
+<meta content="moq" name="keyword">
+<meta content="moqt" name="keyword">
+<meta content="draft-yuyou-conditional-filtering-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.0
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.2
+-->
+<link href="draft-yuyou-conditional-filtering.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Conditional Range Filters</td>
+<td class="right">August 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">You, et al.</td>
+<td class="center">Expires 18 February 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Media Over QUIC</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-yuyou-conditional-filtering-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-08-17" class="published">17 August 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-02-18">18 February 2027</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">Y. You</div>
+<div class="org">Nokia</div>
+</div>
+<div class="author">
+      <div class="author-name">S. Gül</div>
+<div class="org">Nokia</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Begen</div>
+<div class="org">Networked Media</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Sarker</div>
+<div class="org">Nokia</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Conditional Range Filters for Media over QUIC Transport</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">In Media over QUIC Transport (MOQT), subscribers can use Range Filters
+to select specific subgroups, objects, or priorities within a subscribed
+track. However, these subscription filters are static once established
+and can only be modified through explicit subscriber control signaling.
+This document proposes an extension to the Range Filter design that
+binds conditional evaluation logic directly to specific Range Filter
+sets. By introducing dynamic conditions to Range Filter configurations,
+a relay can autonomously adapt the intra-track forwarding behavior based
+on real-time network conditions, avoiding the round-trip delay of
+explicit subscriber update signaling.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://yuyou.github.io/conditional_filtering/">https://yuyou.github.io/conditional_filtering/</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-yuyou-conditional-filtering/">https://datatracker.ietf.org/doc/draft-yuyou-conditional-filtering/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Media Over QUIC Working Group mailing list (<span><a href="mailto:moq@ietf.org">mailto:moq@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/moq/">https://mailarchive.ietf.org/arch/browse/moq/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/moq/">https://www.ietf.org/mailman/listinfo/moq/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/yuyou/conditional_filtering">https://github.com/yuyou/conditional_filtering</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 18 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-inline-range_filter_con" class="internal xref">The Inline RANGE_FILTER_CONDITION Parameter</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-relationship-to-existing-se" class="internal xref">Relationship to Existing SetID</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-parameter-definition" class="internal xref">Parameter Definition</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-alternative-1-reference-des" class="internal xref">Alternative 1: Reference Design</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-alternative-2-self-containe" class="internal xref">Alternative 2: Self-Contained Design</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-parameter-definition-2" class="internal xref">Parameter Definition</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-summary-of-design-alternati" class="internal xref">Summary of Design Alternatives</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-relay-evaluation-and-bandwi" class="internal xref">Relay Evaluation and Bandwidth Allocation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-general-behavior" class="internal xref">General Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-algorithm-0-throughput-base" class="internal xref">Algorithm 0: Throughput-Based Conditional Set Admission</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-relay-state" class="internal xref">Relay State</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
+                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-bandwidth-allocation-algori" class="internal xref">Bandwidth Allocation Algorithm</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
+                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-relay-procedure" class="internal xref">Relay Procedure</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-example-or-preserving-condi" class="internal xref">Example: OR-Preserving Conditional Layer Admission</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-step-1-define-the-range-fil" class="internal xref">Step 1: Define the Range Filters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-step-2-bind-conditions-with" class="internal xref">Step 2: Bind Conditions with RANGE_FILTER_CONDITION (Algorithm 0)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-result" class="internal xref">Result</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-call-flow" class="internal xref">Call flow</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-typical-subscribe-workflow" class="internal xref">Typical SUBSCRIBE workflow</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-standard-publisher-initiate" class="internal xref">Standard Publisher-initiated SUBSCRIBE_TRACKS workflow (V19)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-publisher-initiated-workflo" class="internal xref">Publisher-initiated workflow with RANGE_FILTER_CONDITION</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-or-preserving-admission-ver" class="internal xref">OR-Preserving Admission Versus Set Replacement</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-alternative-embedding-condi" class="internal xref">Alternative: Embedding Conditions in Existing Range Filter Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-handling-filtered-subgroups" class="internal xref">Handling Filtered Subgroups: Prior Subgroup ID Gap</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-extension-negotiation" class="internal xref">Extension negotiation</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">Media over QUIC Transport (MOQT) supports subscription filters in
+SUBSCRIBE requests to indicate which objects within a track are to be
+forwarded. Range Filters allow subscribers to restrict delivery based on
+subgroup identifiers, object identifiers, publisher priorities, or
+specific metadata properties.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">However, current MOQT subscription filters are static once established.
+If a subscriber wishes to change the adaptation policy (e.g., dropping
+an enhancement subgroup due to network congestion), it requires a
+closed-loop procedure: detecting the throughput drop, computing a new
+filter, signaling via REQUEST_UPDATE, and waiting for the relay to apply
+it. This reaction delay introduces a risk of temporary overdelivery and
+queue build-up.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document extends Range Filters with conditional logic that allows
+relays to evaluate pre-authorized conditions and determine which SetIDs
+remain active at runtime. It defines a new RANGE_FILTER_CONDITION
+parameter that explicitly binds a specific Range Filter SetID to a
+condition. If the condition for a particular SetID is met, the relay
+keeps that SetID active in the Range Filter expression; otherwise, that
+SetID is ignored. This enables autonomous, relay-side intra-track
+adaptation without requiring further signaling from the subscriber.<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="the-inline-rangefiltercondition-parameter">
+<section id="section-3">
+      <h2 id="name-the-inline-range_filter_con">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-inline-range_filter_con" class="section-name selfRef">The Inline RANGE_FILTER_CONDITION Parameter</a>
+      </h2>
+<p id="section-3-1">The inline design for conditional filtering embeds all necessary
+algorithm configuration fields directly within a new message parameter,
+making it a self-contained solution for intra-track adaptation.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="relationship-to-existing-setid">
+<section id="section-3.1">
+        <h3 id="name-relationship-to-existing-se">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-relationship-to-existing-se" class="section-name selfRef">Relationship to Existing SetID</a>
+        </h3>
+<p id="section-3.1-1">Range Filters in MOQT (Section 5.1.3 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>)
+already define a SetID field (8 bits) within each filter parameter
+(SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER). Filter parameters
+sharing the same SetID are combined with logical AND, and different
+SetID groups are combined with logical OR.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">This document does not redefine SetID. RANGE_FILTER_CONDITION references
+an existing SetID value to bind conditional evaluation logic to a
+specific filter group that was already declared in the same message.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameter-definition">
+<section id="section-3.2">
+        <h3 id="name-parameter-definition">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-parameter-definition" class="section-name selfRef">Parameter Definition</a>
+        </h3>
+<p id="section-3.2-1">To enable conditional functionality, this document introduces a new
+Message Parameter: RANGE_FILTER_CONDITION. This parameter applies
+conditional activation rules to an intra-track filter set identified by
+a SetID.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The parameter <span class="bcp14">MAY</span> appear in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE
+messages. Multiple instances <span class="bcp14">MAY</span> be present, each referencing a
+different SetID. The same SetID <span class="bcp14">MUST NOT</span> appear in more than one
+RANGE_FILTER_CONDITION within the same message.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">The RANGE_FILTER_CONDITION parameter has the following wire format:<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.2-4">
+<pre>
+RANGE_FILTER_CONDITION {
+  Set ID (8),
+  Algorithm ID (vi64),
+  Throughput threshold (vi64),
+  Set throughput fraction (vi64),
+  Activate switching (vi64),
+  Set rank (8)
+}
+</pre><a href="#section-3.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-5">The fields are defined as follows:<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.2-6">
+          <dt id="section-3.2-6.1">Set ID (8 bits):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.2">
+            <p id="section-3.2-6.2.1">Identifies the Range Filter set being made conditional. This value
+<span class="bcp14">MUST</span> match a SetID used in at least one Range Filter parameter in the
+same message. The field is 8 bits, consistent with the SetID encoding
+defined in MOQT Range Filters.<a href="#section-3.2-6.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-6.3">Algorithm ID (vi64):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.4">
+            <p id="section-3.2-6.4.1">Identifies the conditional evaluation algorithm to be used. This
+document defines Algorithm 0. Other algorithms <span class="bcp14">MAY</span> be defined in
+future specifications.<a href="#section-3.2-6.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-6.5">Throughput threshold (vi64):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.6">
+            <p id="section-3.2-6.6.1">Algorithm 0 specific. The minimum estimated downstream throughput in
+kbps required for the relay to keep this SetID active in the Range
+Filter OR-combination. When bandwidth is constrained, the relay
+determines which conditional SetIDs remain active according to the
+bandwidth allocation algorithm (<a href="#bandwidth-allocation" class="auto internal xref">Section 4.2.2</a>).<a href="#section-3.2-6.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-6.7">Set throughput fraction (vi64):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.8">
+            <p id="section-3.2-6.8.1">Algorithm 0 specific. Relative weight for bandwidth allocation,
+expressed as an integer 1 &lt;= N &lt;= 10. Each conditional SetID receives
+bandwidth proportional to its fraction: <code>target = B_total x fraction /
+sum_F</code>. Fractions are relative weights, not absolute percentages. For
+example, fractions of 6, 4, 3 (sum_F = 13) allocate approximately 46%,
+31%, and 23% respectively. This allows conditional SetIDs to be added
+or removed without requiring other conditional SetIDs to update their
+fractions.<a href="#section-3.2-6.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-6.9">Activate switching (vi64):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.10">
+            <p id="section-3.2-6.10.1">Controls whether conditional evaluation is active for this SetID.
+When set to 0, the relay ignores the conditional state for this SetID
+and includes it in the base MOQT OR-combination exactly as ordinary
+Range Filters do. When set to a non-zero value N, the relay activates
+condition-based admission for conditionally bound SetIDs as soon as at
+least N RANGE_FILTER_CONDITION entries for this subscription have been
+received. Activation takes effect at the next Group boundary.<a href="#section-3.2-6.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-6.11">Set rank (8 bits):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-6.12">
+            <p id="section-3.2-6.12.1">Degradation priority when estimated bandwidth is constrained,
+expressed as an 8-bit unsigned integer in the range 1-255. The default
+value is 1. Values of 0 and outside this range <span class="bcp14">MUST</span> result in a
+REQUEST_ERROR with error code INVALID_FILTER. Lower values indicate
+higher priority (protected from degradation). When bandwidth is
+sufficient, all conditional SetIDs remain active. When bandwidth is
+constrained, lower-priority conditional SetIDs (higher numeric rank)
+are deactivated first, while higher-priority conditional SetIDs
+maintain their target allocation.<a href="#section-3.2-6.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="conditional-set-assignment-design">
+<section id="section-3.3">
+        <h3 id="name-alternative-1-reference-des">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-alternative-1-reference-des" class="section-name selfRef">Alternative 1: Reference Design</a>
+        </h3>
+<p id="section-3.3-1">The inline parameter design described in <a href="#parameter-definition" class="auto internal xref">Section 3.2</a> embeds
+all algorithm fields directly in RANGE_FILTER_CONDITION. This produces a
+self-contained parameter but duplicates the algorithm parameter
+structure that Sender-Side Track Switching (SSTS) <span>[<a href="#SSTS" class="cite xref">SSTS</a>]</span> defines in
+its SWITCHING-SET-ASSIGNMENT parameter, which has an identical set of
+fields (Algorithm ID, Throughput threshold, Set throughput fraction,
+Activate switching, Set rank).<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">A more composable design separates the algorithm configuration from the
+filter binding. Under this design, a single common parameter
+"CONDITIONAL-SET-ASSIGNMENT" carries the algorithm fields and is
+shared by both intra-track conditional filtering and inter-track SSTS
+switching. RANGE_FILTER_CONDITION is then reduced to a binding that maps
+a Range Filter SetID to a Conditional set ID:<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3-3">
+<pre>
+CONDITIONAL-SET-ASSIGNMENT {
+  Conditional set ID (vi64),
+  Algorithm ID (vi64),
+  Throughput threshold (vi64),
+  Set throughput fraction (vi64),
+  Activate switching (vi64),
+  Set rank (8)
+}
+
+RANGE_FILTER_CONDITION {
+  Set ID (8),
+  Conditional set ID (vi64)
+}
+</pre><a href="#section-3.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3-4">CONDITIONAL-SET-ASSIGNMENT replaces the SWITCHING-SET-ASSIGNMENT
+parameter currently defined in SSTS. The fields and semantics are
+identical; only the name and scope change. For SSTS use, the subscriber
+assigns a subscription to a conditional set by including
+CONDITIONAL-SET-ASSIGNMENT in SUBSCRIBE or PUBLISH_OK, exactly as it
+would have used SWITCHING-SET-ASSIGNMENT. For intra-track conditional
+filtering, the subscriber additionally includes one
+RANGE_FILTER_CONDITION per SetID to bind each Range Filter group to a
+Conditional set ID.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3-5">This design has the following properties:<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3-6.1">
+            <p id="section-3.3-6.1.1">Algorithm parameters are defined once in CONDITIONAL-SET-ASSIGNMENT
+and shared across use cases. Multiple RANGE_FILTER_CONDITION entries
+can reference the same Conditional set ID if they share algorithm
+configuration, or different IDs if they require different thresholds
+or ranks.<a href="#section-3.3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.3-6.2">
+            <p id="section-3.3-6.2.1">RANGE_FILTER_CONDITION becomes a lightweight binding with a fixed,
+minimal wire footprint (one 8-bit SetID and one varint).<a href="#section-3.3-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.3-6.3">
+            <p id="section-3.3-6.3.1">A single relay implementation handles both conditional intra-track
+filtering and inter-track SSTS switching through the same
+CONDITIONAL-SET-ASSIGNMENT evaluation logic.<a href="#section-3.3-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.3-6.4">
+            <p id="section-3.3-6.4.1">Future algorithms defined for SSTS are automatically available for
+conditional intra-track filtering without any changes to this
+specification.<a href="#section-3.3-6.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.3-7">The trade-off is that the subscriber must include two parameter types
+"CONDITIONAL-SET-ASSIGNMENT" and "RANGE_FILTER_CONDITION", rather
+than one, and the relay must correlate them. This is a minor
+implementation cost relative to the elimination of duplicated parameter
+definitions across two specifications.<a href="#section-3.3-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conditional-filter-set-design">
+<section id="section-3.4">
+        <h3 id="name-alternative-2-self-containe">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-alternative-2-self-containe" class="section-name selfRef">Alternative 2: Self-Contained Design</a>
+        </h3>
+<p id="section-3.4-1">The reference-based design maps existing SetIDs to dynamic conditions. A
+second alternative is a self-contained design that introduces a new
+parameter, CONDITIONAL_FILTER_SET, which explicitly carries a list of
+alternative filter configurations for a single subscription.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">In this design, the relay interprets the provided configurations as
+mutually exclusive alternatives. The relay monitors the specified metric
+and autonomously selects and applies exactly one configuration from the
+set whose condition is satisfied.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<div id="parameter-definition-1">
+<section id="section-3.4.1">
+          <h4 id="name-parameter-definition-2">
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-parameter-definition-2" class="section-name selfRef">Parameter Definition</a>
+          </h4>
+<p id="section-3.4.1-1">The CONDITIONAL_FILTER_SET parameter (Type 0x44) has the following
+structure:<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.4.1-2">
+<pre>
+CONDITIONAL_FILTER_SET {
+  Parameter Type (vi64) = 0x44,
+  Set ID (vi64),
+  Switching Metric (vi64),
+  Switching Offset (uint8),
+  Configuration Count (vi64),
+  Configuration (..) ...,
+}
+</pre><a href="#section-3.4.1-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.4.1-3.1">
+              <p id="section-3.4.1-3.1.1">Set ID: Uniquely identifies the conditional filter set within the
+session scope, allowing it to be updated or removed via
+REQUEST_UPDATE.<a href="#section-3.4.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-3.2">
+              <p id="section-3.4.1-3.2.1">Switching Metric: Identifies the relay-observable metric used for
+selection, such as throughput (kbps), RTT (ms), or ECN marking rate.<a href="#section-3.4.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-3.3">
+              <p id="section-3.4.1-3.3.1">Switching Offset: Specifies the switching point. A value of 0
+indicates an immediate "hard switch." A non-zero value indicates a
+"soft switch," where the new configuration is applied starting from a
+future Subgroup ID (Current ID + Offset).<a href="#section-3.4.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-3.4">
+              <p id="section-3.4.1-3.4.1">Configuration Count: The number of alternative filter configurations
+included in this set.<a href="#section-3.4.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3.4.1-4">Each Configuration entry within the set defines a specific threshold and
+the filters to apply when active:<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.4.1-5">
+<pre>
+Configuration {
+  Config ID (vi64),
+  Metric Threshold (vi64),
+  Filter Parameter Count (vi64),
+  Filter Parameters (..) ...,
+}
+</pre><a href="#section-3.4.1-5" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.4.1-6.1">
+              <p id="section-3.4.1-6.1.1">Config ID: An identifier for the specific configuration within the
+set.<a href="#section-3.4.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-6.2">
+              <p id="section-3.4.1-6.2.1">Metric Threshold: The condition value for the selected Switching
+Metric. For throughput, the relay selects the configuration with the
+highest threshold that does not exceed the currently observed metric.<a href="#section-3.4.1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.4.1-6.3">
+              <p id="section-3.4.1-6.3.1">Filter Parameters: A list of standard MOQT filter parameters (e.g.,
+SUBGROUP_FILTER, OBJECTID_FILTER) to be applied when this
+configuration is active.<a href="#section-3.4.1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3.4.1-7">Unlike the OR-preserving design, this model uses set-replacement logic.
+If RTT is the metric and three configurations are defined with
+thresholds of 80ms, 150ms, and 250ms, the relay selects only the one
+that matches the current RTT range, stripping all other data<a href="#section-3.4.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="summary-of-design-alternatives">
+<section id="section-3.5">
+        <h3 id="name-summary-of-design-alternati">
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-summary-of-design-alternati" class="section-name selfRef">Summary of Design Alternatives</a>
+        </h3>
+<p id="section-3.5-1">This draft explores three distinct architectural approaches for
+conditional filtering.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.5-2">
+<li id="section-3.5-2.1">
+            <p id="section-3.5-2.1.1"><strong>Inline Design:</strong> Embeds algorithm parameters directly into a new
+message parameter that activates or deactivates existing Range
+Filter SetIDs based on real-time metrics.<a href="#section-3.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.5-2.2">
+            <p id="section-3.5-2.2.1"><strong>Reference-Based Design:</strong> Reuses the common algorithm structure
+from SSTS by mapping standard Range Filter SetIDs to shared
+conditional logic configurations.<a href="#section-3.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.5-2.3">
+            <p id="section-3.5-2.3.1"><strong>Self-Contained Design:</strong> Defines an independent parameter carrying
+an internal list of mutually exclusive filter profiles and their
+corresponding metric thresholds.<a href="#section-3.5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-3.5-3">The <strong>Inline Design</strong> is suggested as the option requiring the <strong>least
+changes</strong> to the current MOQT specification. It functions as a <strong>purely
+additive</strong> message parameter that references existing <code>SetID</code> values
+already defined in the base protocol, thereby avoiding the need to
+modify existing parameters or reorganize the structures of other
+extensions like SSTS.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="relay-evaluation-and-bandwidth-allocation">
+<section id="section-4">
+      <h2 id="name-relay-evaluation-and-bandwi">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-relay-evaluation-and-bandwi" class="section-name selfRef">Relay Evaluation and Bandwidth Allocation</a>
+      </h2>
+<p id="section-4-1">Most of the text in this section is adapted from Sender-Side Track
+Switching for Media over QUIC Transport <span>[<a href="#SSTS" class="cite xref">SSTS</a>]</span>, specifically the
+"Bandwidth Allocation Algorithm" material at
+&lt;https://github.com/wilaw/moq-transport/blob/patch-1/draft-ietf-moq-tran
+sport.md#bandwidth-allocation-allocation-algorithm&gt;.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="general-behavior">
+<section id="section-4.1">
+        <h3 id="name-general-behavior">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-general-behavior" class="section-name selfRef">General Behavior</a>
+        </h3>
+<p id="section-4.1-1">With this parameter, the subscriber pre-authorizes the relay to
+autonomously adjust intra-track forwarding within the subscribed track.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">When RANGE_FILTER_CONDITION entries are present and activate switching
+is non-zero, the relay evaluates each conditionally bound SetID at each
+permitted switching point (Group boundary) and determines whether that
+SetID remains active. The relay then applies the standard MOQT
+OR-combination across all active conditional SetIDs together with any
+unconditional SetIDs. In other words, RANGE_FILTER_CONDITION changes
+whether a SetID participates in the OR expression; it does not change
+the meaning of SetID itself.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">When activate switching is 0 for all conditional SetIDs, or no
+RANGE_FILTER_CONDITION is present, the relay applies the standard MOQT
+Range Filter OR-combination behavior unchanged.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="algorithm-0-throughput-based-conditional-set-admission">
+<section id="section-4.2">
+        <h3 id="name-algorithm-0-throughput-base">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-algorithm-0-throughput-base" class="section-name selfRef">Algorithm 0: Throughput-Based Conditional Set Admission</a>
+        </h3>
+<div id="relay-state">
+<section id="section-4.2.1">
+          <h4 id="name-relay-state">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-relay-state" class="section-name selfRef">Relay State</a>
+          </h4>
+<p id="section-4.2.1-1">The relay maintains the following state for each subscription that
+carries one or more RANGE_FILTER_CONDITION parameters with Algorithm ID
+0:<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2.1-2.1">
+              <p id="section-4.2.1-2.1.1"><code>B_total</code>: Estimated downstream bandwidth capacity for the subscriber
+connection. The relay <span class="bcp14">MUST</span> maintain a bandwidth estimate per
+downstream subscriber. The measurement interval <span class="bcp14">SHOULD</span> be at least the
+Group duration of the subscribed track. The estimate is obtained from
+the QUIC congestion control state (e.g., pacing rate, congestion
+window, smoothed RTT) and <span class="bcp14">MAY</span> be supplemented by external sources. The
+exact mechanism is implementation-specific.<a href="#section-4.2.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.1-2.2">
+              <p id="section-4.2.1-2.2.1"><code>sum_F</code>: Sum of all Set throughput fraction values across all
+registered RANGE_FILTER_CONDITION entries for this subscription.
+Updated when entries are added or removed.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.1-2.3">
+              <p id="section-4.2.1-2.3.1"><code>set.threshold</code>: The Throughput threshold for each conditional SetID.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.1-2.4">
+              <p id="section-4.2.1-2.4.1"><code>set.fraction</code>: The Set throughput fraction for each conditional
+SetID.<a href="#section-4.2.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.1-2.5">
+              <p id="section-4.2.1-2.5.1"><code>set.rank</code>: The Set rank for each conditional SetID.<a href="#section-4.2.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.1-2.6">
+              <p id="section-4.2.1-2.6.1"><code>active_set_ids</code>: The set of conditional SetIDs currently admitted
+into the MOQT OR-combination for this subscription.<a href="#section-4.2.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="bandwidth-allocation">
+<section id="section-4.2.2">
+          <h4 id="name-bandwidth-allocation-algori">
+<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-bandwidth-allocation-algori" class="section-name selfRef">Bandwidth Allocation Algorithm</a>
+          </h4>
+<p id="section-4.2.2-1">On a periodic update interval or at a minimum at each Group boundary,
+the relay executes the following algorithm to determine which
+conditional SetIDs remain active:<a href="#section-4.2.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2.2-2">
+<pre>
+active_set_ids = {}
+reserved_bw = 0
+B_available = B_total
+for each set in ascending rank order:
+  set.target     = B_total x set.fraction / sum_F
+  B_available    = max(0, B_total - reserved_bw)
+  if set.threshold &lt;= min(set.target, B_available):
+    active_set_ids += set.set_id
+    reserved_bw += set.threshold
+</pre><a href="#section-4.2.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2.2-3">The relay then forwards Objects that pass the Range Filters associated
+with any SetID in <code>active_set_ids</code>, combined using the standard MOQT OR
+semantics, together with any unconditional SetIDs. If no conditional
+SetID satisfies its threshold, the relay forwards only the unconditional
+SetIDs, if any. If the subscription contains no unconditional SetIDs,
+the relay <span class="bcp14">MAY</span> forward no Objects; this behavior <span class="bcp14">SHOULD</span> be documented by
+the relay implementation.<a href="#section-4.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.2-4">The rank ordering ensures higher-priority conditional SetIDs (lower rank
+value) are admitted first. The use of <code>reserved_bw</code> makes admission
+monotonic: once a higher-priority conditional SetID has been admitted,
+lower-priority SetIDs are evaluated only against the bandwidth that
+remains after honoring those earlier admissions. Lower-priority
+conditional SetIDs therefore absorb any shortfall by being deactivated
+from the OR-combination.<a href="#section-4.2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="relay-procedure">
+<section id="section-4.2.3">
+          <h4 id="name-relay-procedure">
+<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-relay-procedure" class="section-name selfRef">Relay Procedure</a>
+          </h4>
+<p id="section-4.2.3-1">When the relay receives a subscription with one or more
+RANGE_FILTER_CONDITION parameters:<a href="#section-4.2.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.2.3-2">
+<li id="section-4.2.3-2.1">
+              <p id="section-4.2.3-2.1.1">Register each conditional SetID and its associated Algorithm
+parameters.<a href="#section-4.2.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.2.3-2.2">
+              <p id="section-4.2.3-2.2.1">Store <code>B_total</code>, <code>sum_F</code>, <code>set.threshold</code>, <code>set.fraction</code>,
+<code>set.rank</code>, and <code>active_set_ids</code> as subscription state.<a href="#section-4.2.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.2.3-2.3">
+              <p id="section-4.2.3-2.3.1">If activate switching is non-zero and the number of registered
+RANGE_FILTER_CONDITION entries for this subscription is &gt;= the
+activate switching value, begin active SetID admission by applying
+the bandwidth allocation algorithm (<a href="#bandwidth-allocation" class="auto internal xref">Section 4.2.2</a>) at the
+next Group boundary.<a href="#section-4.2.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+<p id="section-4.2.3-3">When a REQUEST_UPDATE is received:<a href="#section-4.2.3-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2.3-4.1">
+              <p id="section-4.2.3-4.1.1">A RANGE_FILTER_CONDITION with Length = 0 removes the conditional state
+for the referenced SetID.<a href="#section-4.2.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.3-4.2">
+              <p id="section-4.2.3-4.2.1">A RANGE_FILTER_CONDITION with non-zero Length replaces the entire
+conditional state for the referenced SetID.<a href="#section-4.2.3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.3-4.3">
+              <p id="section-4.2.3-4.3.1">Conditional SetIDs not referenced in REQUEST_UPDATE remain unchanged.<a href="#section-4.2.3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-4.2.3-5">When the subscription is terminated (PUBLISH_DONE or cancellation), the
+relay removes all associated RANGE_FILTER_CONDITION state.<a href="#section-4.2.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="example-or-preserving-conditional-layer-admission">
+<section id="section-5">
+      <h2 id="name-example-or-preserving-condi">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-example-or-preserving-condi" class="section-name selfRef">Example: OR-Preserving Conditional Layer Admission</a>
+      </h2>
+<p id="section-5-1">A subscriber receives a scalable video track containing three subgroups:
+Subgroup 0 (base layer), Subgroup 1 (enhancement layer 1), and Subgroup
+2 (enhancement layer 2).<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">The subscriber defines three SetID groups that remain OR-combined in the
+normal MOQT sense. The base layer is always included. Conditional
+evaluation determines which enhancement layers stay active at any given
+time.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<div id="step-1-define-the-range-filters">
+<section id="section-5.1">
+        <h3 id="name-step-1-define-the-range-fil">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-step-1-define-the-range-fil" class="section-name selfRef">Step 1: Define the Range Filters</a>
+        </h3>
+<p id="section-5.1-1">Using the standard MOQT SUBGROUP_FILTER parameter (SetID is 8 bits per
+MOQT Section 5.1.3):<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-2.1">
+            <p id="section-5.1-2.1.1">SUBGROUP_FILTER (SetID = 0): Range 0-0. Delivers the base layer. This
+SetID is unconditional.<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-2.2">
+            <p id="section-5.1-2.2.1">SUBGROUP_FILTER (SetID = 1): Range 1-1. Delivers enhancement layer 1.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-2.3">
+            <p id="section-5.1-2.3.1">SUBGROUP_FILTER (SetID = 2): Range 2-2. Delivers enhancement layer 2.<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="step-2-bind-conditions-with-rangefiltercondition-algorithm-0">
+<section id="section-5.2">
+        <h3 id="name-step-2-bind-conditions-with">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-step-2-bind-conditions-with" class="section-name selfRef">Step 2: Bind Conditions with RANGE_FILTER_CONDITION (Algorithm 0)</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="section-5.2-1">
+<pre>
+RANGE_FILTER_CONDITION (SetID=1):
+  Algorithm ID           = 0
+  Throughput threshold   = 2000  (kbps)
+  Set throughput fraction = 6
+  Activate switching     = 2
+  Set rank               = 1
+
+RANGE_FILTER_CONDITION (SetID=2):
+  Algorithm ID           = 0
+  Throughput threshold   = 2500  (kbps)
+  Set throughput fraction = 4
+  Activate switching     = 2
+  Set rank               = 2
+</pre><a href="#section-5.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-2">Activate switching = 2 means condition-based admission activates once
+both conditional RANGE_FILTER_CONDITION entries are registered. sum_F =
+6 + 4 = 10.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="result">
+<section id="section-5.3">
+        <h3 id="name-result">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-result" class="section-name selfRef">Result</a>
+        </h3>
+<p id="section-5.3-1">The relay applies the bandwidth allocation algorithm at each Group
+boundary:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-2.1">
+            <p id="section-5.3-2.1.1">B_total = 7000 kbps: SetID=1 is allocated <code>7000 * 6 / 10 = 4200</code>,
+which satisfies its 2000 kbps threshold. The remaining budget is 5000
+kbps. SetID=2 is then allocated <code>7000 * 4 / 10 = 2800</code>, which
+satisfies its 2500 kbps threshold. The relay therefore forwards SetID
+0, SetID 1, and SetID 2.<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-3">Note: The subscriber should set fractions and thresholds such that, at
+the expected B_total, each desired layer's threshold is within its
+allocated fraction. The example above illustrates the mechanics; real
+deployments may calibrate threshold and fraction values so the intended
+set of layers remains active at expected bandwidth levels.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">In a typical deployment:<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-5.1">
+            <p id="section-5.3-5.1.1">B_total = 7000 kbps: The relay keeps SetID=1 and SetID=2 active.
+Combined with unconditional SetID=0, subgroups 0, 1, and 2 are
+forwarded.<a href="#section-5.3-5.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-5.2">
+            <p id="section-5.3-5.2.1">B_total = 4000 kbps: The relay keeps SetID=1 active but not SetID=2.
+Combined with unconditional SetID=0, subgroups 0 and 1 are forwarded.<a href="#section-5.3-5.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-5.3">
+            <p id="section-5.3-5.3.1">B_total = 1500 kbps: No conditional enhancement SetID is admitted. The
+relay still forwards the unconditional base layer in SetID=0.<a href="#section-5.3-5.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-6">By structuring the SetIDs as independently admitted OR terms evaluated
+against bandwidth thresholds, the subscriber eliminates round-trip
+signaling delays while preserving the existing SetID combination
+semantics.<a href="#section-5.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="call-flow">
+<section id="section-6">
+      <h2 id="name-call-flow">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-call-flow" class="section-name selfRef">Call flow</a>
+      </h2>
+<ol start="1" type="1" class="normal type-1" id="section-6-1">
+<li id="section-6-1.1">
+          <p id="section-6-1.1.1">A typical SUBSCRIBE workflow for conditional range-filter evaluation.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-1.2">
+          <p id="section-6-1.2.1">A publisher-initiated subscription workflow based on SUBSCRIBE_TRACKS
+and Namespace Prefix Matching.<a href="#section-6-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-1.3">
+          <p id="section-6-1.3.1">A publisher-initiated subscription workflow where
+RANGE_FILTER_CONDITION is carried in PUBLISH_OK.<a href="#section-6-1.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<div id="typical-subscribe-workflow">
+<section id="section-6.1">
+        <h3 id="name-typical-subscribe-workflow">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-typical-subscribe-workflow" class="section-name selfRef">Typical SUBSCRIBE workflow</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="section-6.1-1">
+<pre>
++------------+                               +-------+
+| Subscriber |                               | Relay |
++------------+                               +-------+
+  |                                              |
+  |    SUBSCRIBE (Standard Range Filters,        |
+  |               RANGE_FILTER_CONDITIONs)       |
+  |---------------------------------------------&gt;|
+  |                                              |
+  |                  SUBSCRIBE_OK                |
+  |&lt;---------------------------------------------|
+  |                                              |
+  |                              +-----------------------------+
+  |                              | 1. Measure B_total          |
+  |                              | 2. Evaluate Conditions      |
+  |                              | 3. Admit Active SetIDs      |
+  |                              +-----------------------------+
+  |                                              |
+  |    Forward Objects (Active SetIDs)           |
+  |&lt;=============================================|
+  |                                              |
+  ~             Bandwidth Fluctuates             ~
+  |                                              |
+  |                              +-----------------------------+
+  |                              | Group Boundary Re-eval:     |
+  |                              | Update active SetIDs        |
+  |                              +-----------------------------+
+  |                                              |
+  |    Forward Objects (Updated Active SetIDs)   |
+  |    (w/ PRIOR_SUBGROUP_ID_GAP if skipped)     |
+  |&lt;=============================================|
+  |                                              |
+</pre><a href="#section-6.1-1" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-6.1-2.1">
+            <p id="section-6.1-2.1.1"><strong>Initial setup</strong>: The subscriber sends SUBSCRIBE with multiple SetID
+groups (using standard Range Filters) and binds them using
+RANGE_FILTER_CONDITION.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-2.2">
+            <p id="section-6.1-2.2.1"><strong>Continuous evaluation</strong>: The relay autonomously executes the
+evaluation loop (measuring throughput, comparing thresholds, and
+admitting or deactivating conditional SetIDs).<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-2.3">
+            <p id="section-6.1-2.3.1"><strong>Dynamic adaptation</strong>: At the next group boundary, the relay can
+deactivate lower-priority conditional SetIDs and, when subgroups are
+skipped, uses PRIOR_SUBGROUP_ID_GAP to make intentional omissions
+explicit.<a href="#section-6.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="standard-publisher-initiated-subscribetracks-workflow-v19">
+<section id="section-6.2">
+        <h3 id="name-standard-publisher-initiate">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-standard-publisher-initiate" class="section-name selfRef">Standard Publisher-initiated SUBSCRIBE_TRACKS workflow (V19)</a>
+        </h3>
+<p id="section-6.2-1">The following call flow illustrates a publisher-initiated subscription
+workflow based on SUBSCRIBE_TRACKS and Namespace Prefix Matching.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2-2">
+<pre>
++------------+                +-------+                  +-----------+
+| Subscriber |                | Relay |                  | Publisher |
++------------+                +-------+                  +-----------+
+  |                               |                            |
+  | SUBSCRIBE_TRACKS              |                            |
+  | (Track Namespace Prefix)      |                            |
+  |                               |                            |
+  |------------------------------&gt;|                            |
+  |                               | Namespace Prefix Matching  |
+  |                               | against authorized tracks  |
+  |                               |---------------------------&gt;|
+  |                               |&lt;---------------------------|
+  |                               | Matched Track List         |
+  |                               |                            |
+  |                               | PUBLISH (Track A)          |
+  |&lt;==============================|============================|
+  | PUBLISH_OK (or REQUEST_OK)    |                            |
+  |==============================&gt;|============================|
+  |                               | PUBLISH (Track B)          |
+  |&lt;==============================|============================|
+  | PUBLISH_OK (or REQUEST_OK)    |                            |
+  |==============================&gt;|============================|
+  |                               |                            |
+  |&lt;==== Objects (Filtered) ======|============================|
+  |    (with PRIOR_GAP prop)      |                            |
+</pre><a href="#section-6.2-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-6.2-3.1">
+            <p id="section-6.2-3.1.1"><strong>Discovery and matching</strong>: The subscriber requests a Track Namespace
+Prefix on a bidirectional stream using SUBSCRIBE_TRACKS. The relay or
+publisher performs Namespace Prefix Matching across known authorized
+tracks.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.2-3.2">
+            <p id="section-6.2-3.2.1"><strong>Publisher-initiated delivery</strong>: For each matched track, the
+publisher (directly or through the relay) initiates a new stream and
+sends PUBLISH. The subscriber accepts each stream with PUBLISH_OK (or
+REQUEST_OK), establishing the subscription.<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.2-3.3">
+            <p id="section-6.2-3.3.1"><strong>Filter refinement</strong>: In this workflow, SUBSCRIBE_TRACKS <span class="bcp14">MAY</span> carry
+optional Range Filter and/or Conditional Filter parameters to limit
+delivered objects, either statically (fixed ranges) or dynamically
+(runtime condition evaluation).<a href="#section-6.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="publisher-initiated-workflow-with-rangefiltercondition">
+<section id="section-6.3">
+        <h3 id="name-publisher-initiated-workflo">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-publisher-initiated-workflo" class="section-name selfRef">Publisher-initiated workflow with RANGE_FILTER_CONDITION</a>
+        </h3>
+<p id="section-6.3-1">The following call flow illustrates a publisher-initiated workflow where
+the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.3-2">
+<pre>
++------------+                +-------+                  +-----------+
+| Subscriber |                | Relay |                  | Publisher |
++------------+                +-------+                  +-----------+
+  |                               |                            |
+  | SUBSCRIBE_TRACKS              |                            |
+  | (Track Namespace Prefix)      |                            |
+  |------------------------------&gt;|                            |
+  |                               | Namespace Prefix Matching  |
+  |                               | against authorized tracks  |
+  |                               |---------------------------&gt;|
+  |                               |&lt;---------------------------|
+  |                               | Matched Track List         |
+  |                               |                            |
+  |                               | PUBLISH (Track A)          |
+  |&lt;==============================|============================|
+  | PUBLISH_OK                    |                            |
+  |   + RANGE_FILTER_CONDITION    |                            |
+  |==============================&gt;|============================|
+  |                               | Apply returned conditions  |
+  |                               | before forwarding objects  |
+  |&lt;==== Objects (filtered) ==================================&gt;|
+  |                               |                            |
+  |                               | PUBLISH (Track B)          |
+  |&lt;==============================|============================|
+  | PUBLISH_OK                    |                            |
+  |   + RANGE_FILTER_CONDITION    |                            |
+  |==============================&gt;|============================|
+  |                               | Apply returned conditions  |
+  |                               | before forwarding objects  |
+  |&lt;==== Objects (filtered) ==================================&gt;|
+  |                               |                            |
+</pre><a href="#section-6.3-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-6.3-3.1">
+            <p id="section-6.3-3.1.1"><strong>No filter parameters in SUBSCRIBE_TRACKS</strong>: The subscriber requests
+only a Track Namespace Prefix.<a href="#section-6.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.3-3.2">
+            <p id="section-6.3-3.2.1"><strong>Condition conveyed in acceptance</strong>: For each received PUBLISH
+stream, the subscriber responds with PUBLISH_OK carrying
+RANGE_FILTER_CONDITION.<a href="#section-6.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.3-3.3">
+            <p id="section-6.3-3.3.1"><strong>Per-track activation</strong>: The relay applies the returned conditions to
+that accepted stream and forwards only objects that satisfy the
+resulting active SetID combination.<a href="#section-6.3-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="design-rationale">
+<section id="section-7">
+      <h2 id="name-design-rationale">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-design-rationale" class="section-name selfRef">Design Rationale</a>
+      </h2>
+<div id="or-preserving-admission-versus-set-replacement">
+<section id="section-7.1">
+        <h3 id="name-or-preserving-admission-ver">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-or-preserving-admission-ver" class="section-name selfRef">OR-Preserving Admission Versus Set Replacement</a>
+        </h3>
+<p id="section-7.1-1">Two high-level designs are possible for conditional intra-track
+filtering.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">In a set-replacement design, the relay interprets conditional SetIDs as
+mutually exclusive alternatives and selects exactly one active SetID.
+That model can be convenient for layered examples, but it changes the
+base MOQT meaning of SetID because SetIDs no longer behave as
+OR-combined filter groups once conditional logic is enabled.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The inline design instead uses an OR-preserving admission design. Under this
+model, conditional logic determines only whether a SetID participates in
+the existing OR expression at a given switching point. The AND semantics
+within a SetID and the OR semantics across SetIDs remain unchanged. This
+preserves compatibility with existing Range Filter processing, avoids
+introducing a special-case interpretation of SetID, and lets
+unconditional and conditional SetIDs coexist naturally in the same
+subscription.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">The main trade-off is that subscribers describe adaptation as
+incremental admission or removal of OR terms, rather than as a single
+explicit "current SetID". That requires examples and algorithms to be
+phrased in terms of active SetID combinations. This document prefers
+that trade-off because it keeps the extension additive and avoids
+redefining core MOQT Range Filter behavior.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="alternative-embedding-conditions-in-existing-range-filter-parameters">
+<section id="section-7.2">
+        <h3 id="name-alternative-embedding-condi">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-alternative-embedding-condi" class="section-name selfRef">Alternative: Embedding Conditions in Existing Range Filter Parameters</a>
+        </h3>
+<p id="section-7.2-1">An alternative design would embed the conditional evaluation fields
+(Algorithm ID, Throughput threshold, Set throughput fraction, Activate
+switching, Set rank) directly into the existing Range Filter parameters
+SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+OBJECT_PROPERTY_FILTER, and TRACK_PROPERTY_FILTER, rather than
+introducing a separate RANGE_FILTER_CONDITION parameter.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">Under this approach, a subscriber would signal the condition inline with
+the filter that it governs, for example:<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.2-3">
+<pre>
+SUBGROUP_FILTER {
+  Type=0x25, Length, [SetID], Range...,
+  [Algorithm ID (vi64)],
+  [Throughput threshold (vi64)],
+  ...
+}
+</pre><a href="#section-7.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-7.2-4">This approach is not adopted for the following reasons.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.2-5"><strong>SetID is a grouping mechanism, not a per-filter attribute.</strong> A single
+SetID typically comprises multiple Range Filter parameters that are
+AND-combined (e.g., a SUBGROUP_FILTER and an OBJECTID_FILTER with the
+same SetID). The conditional activation logic applies to the entire
+SetID group, not to any individual filter within it. Embedding condition
+fields in each Range Filter parameter would require either repeating the
+fields identically across every parameter sharing the same SetID, or
+designating one parameter as the canonical carrier while others are
+implicitly governed by it. Both approaches introduce ambiguity and
+implementation complexity without benefit.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.2-6"><strong>Modifying base MOQT parameters raises the change bar.</strong>
+SUBGROUP_FILTER and related parameters are defined and registered in the
+MOQT base specification (<span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>, Section 15.7).
+Extending their wire format would require a change to or an update of
+that specification rather than a new parameter registration. A
+standalone parameter type, by contrast, is a purely additive change.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
+<p id="section-7.2-7"><strong>Separation of concerns is architecturally preferable.</strong> Range Filter
+parameters define the <em>content selection criterion</em> (which subgroup IDs,
+object IDs, priorities, or property values pass). The
+RANGE_FILTER_CONDITION parameter defines the <em>activation condition</em>
+(under what network state the SetID is active). Keeping these concerns
+in separate parameters preserves the ability to use Range Filters
+independently of any conditional logic, and allows future algorithms to
+be introduced without touching the base filter format.<a href="#section-7.2-7" class="pilcrow">¶</a></p>
+<p id="section-7.2-8">For these reasons, RANGE_FILTER_CONDITION is defined as a standalone
+parameter that references an existing SetID by value.<a href="#section-7.2-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="handling-filtered-subgroups-prior-subgroup-id-gap">
+<section id="section-7.3">
+        <h3 id="name-handling-filtered-subgroups">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-handling-filtered-subgroups" class="section-name selfRef">Handling Filtered Subgroups: Prior Subgroup ID Gap</a>
+        </h3>
+<p id="section-7.3-1">When a relay dynamically filters out a subgroup due to network
+conditions, a subscriber receiving the stream might notice a numerical
+leap in Group IDs or Object IDs. To explicitly communicate that these
+missing objects were intentionally skipped by a conditional filter
+rather than lost to network congestion, we propose a new
+PRIOR_SUBGROUP_ID_GAP Object Property.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.3-2.1">
+            <p id="section-7.3-2.1.1"><strong>Prior Subgroup ID Gap (Property Type: 0x3F):</strong> A variable-length
+integer containing the number of Subgroups prior to the current
+Subgroup ID (within the current Group) that do not and will never
+exist because they were conditionally filtered out.<a href="#section-7.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.3-3">If a relay drops Subgroup 1 but continues forwarding Subgroup 0 and
+Subgroup 2, it injects PRIOR_SUBGROUP_ID_GAP = 1 into the first Object
+of Subgroup 2. Relays <span class="bcp14">MUST</span> be permitted to modify this specific gap
+property to support dynamic conditional filtering.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="extension-negotiation">
+<section id="section-7.4">
+        <h3 id="name-extension-negotiation">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-extension-negotiation" class="section-name selfRef">Extension negotiation</a>
+        </h3>
+<p id="section-7.4-1">Per Section 10.3 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>, the SETUP message
+allows endpoints to agree on the initial configuration before any other
+control messages are exchanged. Extensions that modify control message
+semantics, such as RANGE_FILTER_CONDITION, <span class="bcp14">MUST</span> be negotiated through
+Setup Options before use.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">The Setup Options defined in this section are intended for the inline
+design of this extension. Alternative designs, such as the
+reference-based design (<a href="#conditional-set-assignment-design" class="auto internal xref">Section 3.3</a>) or the
+self-contained design (<a href="#conditional-filter-set-design" class="auto internal xref">Section 3.4</a>), may instead
+rely on Setup Options defined in the Sender-Side Track Switching (SSTS)
+extension <span>[<a href="#SSTS" class="cite xref">SSTS</a>]</span> or require different identifiers for their respective
+parameters.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.4-3">This document defines two new Setup Options: RANGE_FILTER_CONDITION and
+MAX_CONDITIONAL_FILTERS.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.4-4">
+          <dt id="section-7.4-4.1">RANGE_FILTER_CONDITION (Type 0x09):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.4-4.2">
+            <p id="section-7.4-4.2.1">Declares support for the RANGE_FILTER_CONDITION message parameter
+defined in <a href="#parameter-definition" class="auto internal xref">Section 3.2</a>. The value is a variable-length
+integer identifying the version of the conditional filtering algorithm
+set the endpoint is willing to use. The value indicates the highest
+Algorithm ID the endpoint is capable of evaluating. An endpoint that
+includes this option can process RANGE_FILTER_CONDITION parameters for
+any Algorithm ID up to and including the advertised value. If not
+present, the endpoint does not support this extension.<a href="#section-7.4-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.4-4.3">MAX_CONDITIONAL_FILTERS (Type 0x0A):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.4-4.4">
+            <p id="section-7.4-4.4.1">Limits the peer's total number of RANGE_FILTER_CONDITION parameters
+allowed concurrently for a given subscription or fetch. The default
+value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> send any
+RANGE_FILTER_CONDITION parameters. If this limit is exceeded, an
+endpoint <span class="bcp14">MUST</span> reject this with REQUEST_ERROR with error code
+INVALID_FILTER.<a href="#section-7.4-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-7.4-5">An endpoint that wishes to send RANGE_FILTER_CONDITION parameters <span class="bcp14">MUST</span>
+verify that the peer's SETUP message includes a RANGE_FILTER_CONDITION
+Setup Option with a value greater than or equal to the Algorithm ID it
+intends to use, and a MAX_CONDITIONAL_FILTERS value greater than zero.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+<p id="section-7.4-6">Because RANGE_FILTER_CONDITION binds to Range Filter SetIDs, an endpoint
+that sends RANGE_FILTER_CONDITION <span class="bcp14">MUST</span> also ensure that the
+MAX_FILTER_RANGES Setup Option (Section 10.3.1.6 of
+<span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>) has been negotiated with a non-zero value;
+otherwise Range Filters themselves would not be permitted and the
+referenced SetIDs could not be established.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
+<p id="section-7.4-7">Endpoints that do not support this extension will not include the
+RANGE_FILTER_CONDITION Setup Option in their SETUP message. As required
+by Section 10.3 of <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>, endpoints <span class="bcp14">MUST</span> ignore
+unknown Setup Options, so a peer that receives these options from an
+endpoint that does not recognize them simply ignores them and does not
+send RANGE_FILTER_CONDITION parameters in that session.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-8-1">This extension relies on the existing security framework of MOQT.
+Conditional filter evaluation must be computationally lightweight to
+prevent denial-of-service attacks against relays. A malicious subscriber
+could attempt to overwhelm a relay with highly complex
+RANGE_FILTER_CONDITION thresholds or excessive conditional SetIDs.
+Relays <span class="bcp14">SHOULD</span> implement rate limiting on the maximum number of
+conditionally bound SetIDs a subscriber can declare in a single session.<a href="#section-8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-9">
+      <h2 id="name-iana-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<ul class="normal">
+<li class="normal" id="section-9-1.1">
+          <p id="section-9-1.1.1">A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value:
+0x09) in the "MOQ Setup Options" registry (Section 15.4 of
+<span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.<a href="#section-9-1.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-1.2">
+          <p id="section-9-1.2.1">A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value:
+0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
+<span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>), with Specification Required policy.<a href="#section-9-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-1.3">
+          <p id="section-9-1.3.1">A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
+Message Parameters" registry.<a href="#section-9-1.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-1.4">
+          <p id="section-9-1.4.1">A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested
+value: 0x3F) in the "MOQ Properties" registry.<a href="#section-9-1.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-10">
+      <h2 id="name-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-10.1">
+        <h3 id="name-normative-references">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-moq-transport">[I-D.ietf-moq-transport]</dt>
+        <dd>
+<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-19</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-19">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-19</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+      <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-10.2">
+        <h3 id="name-informative-references">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="SSTS">[SSTS]</dt>
+      <dd>
+<span class="refTitle">"Sender-Side Track Switching for Media over QUIC Transport"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/wilaw/moqt-ssts/blob/main/draft-wilaw-moq-moqt-ssts.md">https://github.com/wilaw/moqt-ssts/blob/main/draft-wilaw-moq-moqt-ssts.md</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1">IETF MOQ Working Group.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Yu You</span></div>
+<div dir="auto" class="left"><span class="org">Nokia</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:yu.you@nokia.com" class="email">yu.you@nokia.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Serhan Gül</span></div>
+<div dir="auto" class="left"><span class="org">Nokia</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:serhan.guel@nokia.com" class="email">serhan.guel@nokia.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Ali Cengiz Begen</span></div>
+<div dir="auto" class="left"><span class="org">Networked Media</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ali.begen@networked.media" class="email">ali.begen@networked.media</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">ANM Zaheduzzaman Sarker</span></div>
+<div dir="auto" class="left"><span class="org">Nokia</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:zaheduzzaman.sarker@nokia.com" class="email">zaheduzzaman.sarker@nokia.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
