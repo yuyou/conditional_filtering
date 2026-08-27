@@ -2,7 +2,7 @@
 title: "Conditional Range Filters for Media over QUIC Transport"
 abbrev: "Conditional Range Filters"
 category: std
-docname: draft-yuyou-conditional-filtering-latest
+docname: draft-yuyou-moq-conditional-filtering-00
 ipr: trust200902
 submissiontype: IETF
 consensus: true
