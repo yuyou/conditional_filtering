@@ -2,7 +2,7 @@
 title: "Conditional Range Filters for Media over QUIC Transport"
 abbrev: "Conditional Range Filters"
 category: std
-docname: draft-yuyou-moq-conditional-filtering-00
+docname: draft-yuyou-moq-conditional-filtering-01
 ipr: trust200902
 submissiontype: IETF
 consensus: true
@@ -83,6 +83,15 @@ filter, signaling via REQUEST_UPDATE, and waiting for the relay to apply
 it. This reaction delay introduces a risk of temporary overdelivery and
 queue build-up.
 
+The Top Tracks Filter defined by MOQT performs dynamic inter-track
+selection by ranking tracks within a namespace according to a Track or
+Object Property. This document is complementary to that mechanism. It
+performs intra-track selection among Range Filter SetIDs according to
+downstream network conditions. When both mechanisms are used, the Top
+Tracks Filter first selects tracks and conditional Range Filters then
+select Objects within those tracks, consistent with the filter ordering
+defined by MOQT.
+
 This document extends Range Filters with conditional logic that allows
 relays to evaluate pre-authorized conditions and determine which SetIDs
 remain active at runtime. It defines a new RANGE_FILTER_CONDITION
@@ -124,7 +133,9 @@ a SetID.
 The parameter MAY appear in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE
 messages. Multiple instances MAY be present, each referencing a
 different SetID. The same SetID MUST NOT appear in more than one
-RANGE_FILTER_CONDITION within the same message.
+RANGE_FILTER_CONDITION within the same message. The parameter MAY also
+appear in SUBSCRIBE_TRACKS, where it is inherited as an initial parameter
+of each resulting subscription, as specified for Subscription parameters by MOQT.
 
 The RANGE_FILTER_CONDITION parameter has the following wire format:
 
@@ -623,9 +634,11 @@ workflow based on SUBSCRIBE_TRACKS and Namespace Prefix Matching.
   REQUEST_OK), establishing the subscription.
 
 * **Filter refinement**: In this workflow, SUBSCRIBE_TRACKS MAY carry
-  optional Range Filter and/or Conditional Filter parameters to limit
-  delivered objects, either statically (fixed ranges) or dynamically
-  (runtime condition evaluation).
+  Range Filter parameters and RANGE_FILTER_CONDITION parameters. Each
+  condition references a Range Filter SetID declared in the same
+  SUBSCRIBE_TRACKS message. The parameters become initial parameters of
+  each resulting subscription and limit delivered Objects either
+  statically or through runtime condition evaluation.
 
 ## Publisher-initiated workflow with RANGE_FILTER_CONDITION
 
@@ -649,6 +662,7 @@ the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.
   |                               | PUBLISH (Track A)          |
   |<==============================|============================|
   | PUBLISH_OK                    |                            |
+  |   + Range Filters             |                            |
   |   + RANGE_FILTER_CONDITION    |                            |
   |==============================>|============================|
   |                               | Apply returned conditions  |
@@ -658,6 +672,7 @@ the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.
   |                               | PUBLISH (Track B)          |
   |<==============================|============================|
   | PUBLISH_OK                    |                            |
+  |   + Range Filters             |                            |
   |   + RANGE_FILTER_CONDITION    |                            |
   |==============================>|============================|
   |                               | Apply returned conditions  |
@@ -668,9 +683,10 @@ the subscriber returns RANGE_FILTER_CONDITION in PUBLISH_OK.
 * **No filter parameters in SUBSCRIBE_TRACKS**: The subscriber requests
   only a Track Namespace Prefix.
 
-* **Condition conveyed in acceptance**: For each received PUBLISH
-  stream, the subscriber responds with PUBLISH_OK carrying
-  RANGE_FILTER_CONDITION.
+* **Filters and conditions conveyed in acceptance**: For each received
+  PUBLISH stream, the subscriber responds with PUBLISH_OK carrying the
+  Range Filters and RANGE_FILTER_CONDITION parameters. Each condition
+  references a Range Filter SetID in that PUBLISH_OK message.
 
 * **Per-track activation**: The relay applies the returned conditions to
   that accepted stream and forwards only objects that satisfy the
@@ -766,7 +782,7 @@ missing objects were intentionally skipped by a conditional filter
 rather than lost to network congestion, we propose a new
 PRIOR_SUBGROUP_ID_GAP Object Property.
 
-*   **Prior Subgroup ID Gap (Property Type: 0x3F):** A variable-length
+*   **Prior Subgroup ID Gap (Property Type: 0x40):** A variable-length
     integer containing the number of Subgroups prior to the current
     Subgroup ID (within the current Group) that do not and will never
     exist because they were conditionally filtered out.
@@ -795,7 +811,7 @@ parameters.
 This document defines two new Setup Options: RANGE_FILTER_CONDITION and
 MAX_CONDITIONAL_FILTERS.
 
-RANGE_FILTER_CONDITION (Type 0x09):
+RANGE_FILTER_CONDITION (Type 0x0A):
 : Declares support for the RANGE_FILTER_CONDITION message parameter
   defined in {{parameter-definition}}. The value is a variable-length
   integer identifying the version of the conditional filtering algorithm
@@ -805,7 +821,7 @@ RANGE_FILTER_CONDITION (Type 0x09):
   any Algorithm ID up to and including the advertised value. If not
   present, the endpoint does not support this extension.
 
-MAX_CONDITIONAL_FILTERS (Type 0x0A):
+MAX_CONDITIONAL_FILTERS (Type 0x0B):
 : Limits the peer's total number of RANGE_FILTER_CONDITION parameters
   allowed concurrently for a given subscription or fetch. The default
   value is 0, so if not specified, the peer MUST NOT send any
@@ -845,17 +861,37 @@ conditionally bound SetIDs a subscriber can declare in a single session.
 # IANA Considerations
 
 *  A new Setup Option Type for RANGE_FILTER_CONDITION (suggested value:
-   0x09) in the "MOQ Setup Options" registry (Section 15.4 of
+  0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
    {{!I-D.ietf-moq-transport}}), with Specification Required policy.
 *  A new Setup Option Type for MAX_CONDITIONAL_FILTERS (suggested value:
-   0x0A) in the "MOQ Setup Options" registry (Section 15.4 of
+  0x0B) in the "MOQ Setup Options" registry (Section 15.4 of
    {{!I-D.ietf-moq-transport}}), with Specification Required policy.
 *  A new Message Parameter Type for RANGE_FILTER_CONDITION in the "MOQT
    Message Parameters" registry.
 *  A new Object Property Type for PRIOR_SUBGROUP_ID_GAP (suggested
-   value: 0x3F) in the "MOQ Properties" registry.
+  value: 0x40) in the "MOQ Properties" registry.
 
 --- back
+
+# Change Log
+
+RFC Editor's Note: Please remove this section prior to publication of a
+final version of this document.
+
+## draft-yuyou-moq-conditional-filtering-00
+
+* Define RANGE_FILTER_CONDITION for conditional admission of Range
+  Filter SetIDs based on downstream throughput.
+* Preserve the existing AND-within-SetID and OR-across-SetIDs semantics.
+* Define relay evaluation at Group boundaries and an associated
+  bandwidth allocation algorithm.
+* Define use with SUBSCRIBE, SUBSCRIBE_TRACKS, PUBLISH_OK, and
+  REQUEST_UPDATE.
+* Define PRIOR_SUBGROUP_ID_GAP to identify subgroups omitted by
+  conditional filtering.
+* Clarify that conditional Range Filters provide intra-track adaptation
+  and complement the inter-track selection performed by Top Tracks
+  Filters.
 
 # Acknowledgments
 {:numbered="false"}
